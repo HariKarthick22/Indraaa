@@ -68,6 +68,11 @@
   --r-lg: 10px;
   --r-full: 999px;
 
+  /* Elevation — §3.4. Exactly one shadow exists, and it is permitted on two
+     surfaces only: the command palette and dialogs. Cards do not float;
+     borders do the work shadows do elsewhere. */
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.45);
+
   /* Motion */
   --m-tap: 90ms;
   --m-ui: 160ms;
@@ -96,4 +101,127 @@
   --degraded: #9a6b18;
   --blocked: #a83b2c;
   --focus: #2e5fd0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INDRA — Phase B animations (§6.1 stream · §6.2 plan · §6.4 citation)
+   Keyframes and the focus ring only. Everything that moves is switched off
+   under prefers-reduced-motion: reduce at the bottom of this block.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Per-glyph entrance. Opacity and blur only — a translateY on a character
+   repaints the whole line and produces the jitter the buffer removes. */
+@keyframes glyph-in {
+  from {
+    opacity: 0;
+    filter: blur(2.5px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.g {
+  animation: glyph-in var(--m-glyph) linear both;
+}
+
+@keyframes indra-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.indra-caret--idle {
+  animation: indra-caret-blink 1060ms steps(1, end) infinite;
+}
+
+@keyframes indra-dot-breathe {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.indra-stall-dot {
+  animation: indra-dot-breathe 1200ms var(--ease-ui) infinite;
+}
+
+.indra-stall-dot:nth-child(2) {
+  animation-delay: 160ms;
+}
+
+.indra-stall-dot:nth-child(3) {
+  animation-delay: 320ms;
+}
+
+/* A step inserted by a revision grows into place rather than appearing. */
+@keyframes indra-step-in {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: 32px;
+    opacity: 1;
+  }
+}
+
+.indra-step--inserted {
+  animation: indra-step-in var(--m-enter) var(--ease-enter) both;
+}
+
+/* The 2px --focus tick that marks a revised step, fading over 2s. */
+@keyframes indra-tick-fade {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.indra-tick {
+  animation: indra-tick-fade 2000ms linear both;
+}
+
+@keyframes indra-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.indra-rise {
+  animation: indra-rise-in var(--m-ui) var(--ease-ui) both;
+}
+
+/* §8: 2px --focus ring at 2px offset, never removed for mouse users. */
+.indra-focusable:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g,
+  .indra-caret--idle,
+  .indra-stall-dot,
+  .indra-step--inserted,
+  .indra-tick,
+  .indra-rise {
+    animation: none;
+  }
 }
