@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { searchPalette, type PaletteEntry } from '../../indra/paletteIndex';
+import { useReducedMotion } from '../../indra/useReducedMotion';
 
 export interface CommandPaletteProps {
   open: boolean;
@@ -15,18 +16,6 @@ const OPEN_MS = 120;
 
 function optionId(entryId: string): string {
   return `indra-palette-option-${entryId}`;
-}
-
-// Task 3's shared reduced-motion hook is owned elsewhere in this plan; the
-// palette reads the media query directly rather than racing that file. jsdom
-// and any host without matchMedia fall back to "no preference".
-function systemPrefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  } catch {
-    return false;
-  }
 }
 
 const backdropStyle: CSSProperties = {
@@ -52,6 +41,7 @@ export function CommandPalette({ open, entries, onClose, placeholder }: CommandP
   const [highlight, setHighlight] = useState(0);
   const [focusRing, setFocusRing] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const reducedMotion = useReducedMotion();
 
   const matches = useMemo(() => searchPalette(entries, query), [entries, query]);
   const active = matches[highlight];
@@ -100,8 +90,6 @@ export function CommandPalette({ open, entries, onClose, placeholder }: CommandP
   );
 
   if (!open) return null;
-
-  const reducedMotion = systemPrefersReducedMotion();
 
   return (
     <>
