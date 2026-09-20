@@ -2292,6 +2292,59 @@ pub struct SetToolPermissionsRequest {
 #[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcResponse)]
 pub struct SetToolPermissionsResponse {}
 
+/// A single outbound-network attempt recorded by the sovereign egress proof
+/// surface (see `EgressLog` in the `indra` crate's `security::egress_inspector`
+/// module — this type mirrors it for the wire).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct EgressAttemptDto {
+    pub url: String,
+    pub blocked: bool,
+    pub reason: String,
+    /// RFC 3339 timestamp.
+    pub at: String,
+}
+
+/// Read the sovereignty screen's egress log and process uptime.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcRequest)]
+#[request(
+    method = "_goose/unstable/sovereignty/egress/status",
+    response = EgressStatusResponse
+)]
+#[serde(rename_all = "camelCase")]
+pub struct EgressStatusRequest {}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcResponse)]
+#[serde(rename_all = "camelCase")]
+pub struct EgressStatusResponse {
+    pub attempts: Vec<EgressAttemptDto>,
+    pub uptime_seconds: u64,
+}
+
+/// Deliberately attempt to reach a real URL, for the sovereignty screen's
+/// "prove it" probe box.
+///
+/// `blocked: true` means the outbound call was refused (sovereignty intact);
+/// `blocked: false` means it genuinely reached the network. Render both
+/// truthfully — a networked dev machine reaching out is the correct result
+/// for that machine, not a bug to hide.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcRequest)]
+#[request(
+    method = "_goose/unstable/sovereignty/egress/probe",
+    response = EgressProbeResponse
+)]
+#[serde(rename_all = "camelCase")]
+pub struct EgressProbeRequest {
+    pub url: String,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcResponse)]
+#[serde(rename_all = "camelCase")]
+pub struct EgressProbeResponse {
+    pub blocked: bool,
+    pub reason: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
