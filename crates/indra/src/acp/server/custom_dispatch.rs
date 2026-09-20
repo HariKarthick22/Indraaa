@@ -892,4 +892,20 @@ impl GooseAcpAgent {
         self.on_local_inference_builtin_chat_templates_list(req)
             .await
     }
+
+    #[custom_method(EgressStatusRequest)]
+    async fn dispatch_egress_status(
+        &self,
+        req: EgressStatusRequest,
+    ) -> Result<EgressStatusResponse, agent_client_protocol::Error> {
+        self.on_egress_status(req).await
+    }
+
+    #[custom_method(EgressProbeRequest)]
+    async fn dispatch_egress_probe(
+        &self,
+        req: EgressProbeRequest,
+    ) -> Result<EgressProbeResponse, agent_client_protocol::Error> {
+        self.on_egress_probe(req).await
+    }
 }

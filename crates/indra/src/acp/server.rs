@@ -121,6 +121,7 @@ mod resources;
 mod schedule;
 mod slash_commands;
 mod sources;
+mod sovereignty;
 mod tool_calls;
 mod tool_notifications;
 mod tools;
