@@ -209,6 +209,20 @@
   animation: indra-rise-in var(--m-ui) var(--ease-ui) both;
 }
 
+/* Sheet.tsx's right-side panel entrance - 24px slide plus fade (§6.3). The
+   component itself swaps this out for `none` under reduced motion, so the
+   panel cuts into place instead of sliding. */
+@keyframes indra-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* §8: 2px --focus ring at 2px offset, never removed for mouse users. */
 .indra-focusable:focus-visible {
   outline: 2px solid var(--focus);
