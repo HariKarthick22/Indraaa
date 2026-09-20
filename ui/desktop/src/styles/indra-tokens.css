@@ -215,13 +215,53 @@
   outline-offset: 2px;
 }
 
+/* Task 25b: the lock overlay's backdrop. This is the one surface permitted to
+   use blur — it is a backdrop over the still-visible workspace, not
+   decoration (spec §5.3). Under reduced motion it appears at full blur with
+   no transition, per the disable block below. */
+@keyframes indra-lock-backdrop-in {
+  from {
+    backdrop-filter: blur(0);
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    backdrop-filter: blur(12px);
+    background-color: rgba(0, 0, 0, 0.55);
+  }
+}
+
+.indra-lock-backdrop {
+  animation: indra-lock-backdrop-in var(--m-enter) var(--ease-enter) both;
+}
+
+/* A wrong passphrase shakes once, never repeating — the attempts-remaining
+   sentence is the real signal, this only reinforces it. */
+@keyframes indra-lock-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.indra-lock-shake {
+  animation: indra-lock-shake 220ms var(--ease-tap);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .g,
   .indra-caret--idle,
   .indra-stall-dot,
   .indra-step--inserted,
   .indra-tick,
-  .indra-rise {
+  .indra-rise,
+  .indra-lock-backdrop,
+  .indra-lock-shake {
     animation: none;
   }
 }
