@@ -4,7 +4,10 @@ export interface IndraTopBarProps {
   sessionBytes: number;
   budgetBytes: number;
   onToggleTheme: () => void;
+  onOpenLedger?: () => void;
 }
+
+export type ContextGaugeState = 'ok' | 'near-cap' | 'at-cap';
 
 function formatKb(bytes: number): string {
   return `${(bytes / 1000).toFixed(1)} kB`;
@@ -14,13 +17,74 @@ export function formatContextGauge(sessionBytes: number, budgetBytes: number): s
   return `${formatKb(sessionBytes)} / ${formatKb(budgetBytes)}`;
 }
 
+// Spec §6.3: the gauge takes --degraded past 70% and holds at cap while
+// compaction runs, rather than climbing past 100%.
+export function contextGaugeState(sessionBytes: number, budgetBytes: number): ContextGaugeState {
+  if (budgetBytes <= 0) return 'ok';
+  const ratio = sessionBytes / budgetBytes;
+  if (ratio >= 1) return 'at-cap';
+  if (ratio >= 0.7) return 'near-cap';
+  return 'ok';
+}
+
 export function IndraTopBar({
   sessionTitle,
   onSessionTitleChange,
   sessionBytes,
   budgetBytes,
   onToggleTheme,
+  onOpenLedger,
 }: IndraTopBarProps) {
+  const gaugeState = contextGaugeState(sessionBytes, budgetBytes);
+  const ratio = budgetBytes > 0 ? Math.min(Math.max(sessionBytes / budgetBytes, 0), 1) : 0;
+
+  const gauge = (
+    <>
+      <span
+        aria-label="Context budget"
+        style={{
+          flexShrink: 0,
+          fontFamily: 'var(--font-mono)',
+          fontSize: 'var(--t-11)',
+          lineHeight: 'var(--t-11--line-height)',
+          color: 'var(--text-dim)',
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {formatContextGauge(sessionBytes, budgetBytes)}
+      </span>
+      {/* 60px hairline bar (spec §6.3); the fill width ticks on context.delta. */}
+      <div
+        role="progressbar"
+        aria-label="Context usage"
+        aria-valuemin={0}
+        aria-valuenow={sessionBytes}
+        aria-valuemax={budgetBytes}
+        data-state={gaugeState}
+        style={{
+          flexShrink: 0,
+          width: 60,
+          height: 3,
+          borderRadius: 'var(--r-full)',
+          background: 'var(--line)',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            height: '100%',
+            width: `${ratio * 100}%`,
+            borderRadius: 'var(--r-full)',
+            background: gaugeState === 'ok' ? 'var(--text-dim)' : 'var(--degraded)',
+            transitionProperty: 'width',
+            transitionDuration: 'var(--m-ui)',
+            transitionTimingFunction: 'var(--ease-ui)',
+          }}
+        />
+      </div>
+    </>
+  );
+
   return (
     <header
       style={{
@@ -55,19 +119,36 @@ export function IndraTopBar({
           fontWeight: 500,
         }}
       />
-      <span
-        aria-label="Context budget"
-        style={{
-          flexShrink: 0,
-          fontFamily: 'var(--font-mono)',
-          fontSize: 'var(--t-11)',
-          lineHeight: 'var(--t-11--line-height)',
-          color: 'var(--text-dim)',
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {formatContextGauge(sessionBytes, budgetBytes)}
-      </span>
+      {onOpenLedger ? (
+        <button
+          type="button"
+          onClick={onOpenLedger}
+          aria-label="Open context ledger"
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-3)',
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+          }}
+        >
+          {gauge}
+        </button>
+      ) : (
+        <div
+          style={{
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-3)',
+          }}
+        >
+          {gauge}
+        </div>
+      )}
       <button
         type="button"
         onClick={onToggleTheme}
