@@ -1934,6 +1934,17 @@ ipcMain.handle('directory-chooser', async () => {
   });
 });
 
+// Workspace Folders (grants a local model read/controlled access to a
+// specific directory, never the whole filesystem): picks an *existing*
+// directory only, unlike directory-chooser above, since granting access to a
+// folder that doesn't exist yet has no meaning.
+ipcMain.handle('select-workspace-folder', async () => {
+  return dialog.showOpenDialog({
+    properties: ['openDirectory'],
+    defaultPath: os.homedir(),
+  });
+});
+
 ipcMain.handle('add-recent-dir', (_event, dir: string) => {
   if (dir) {
     addRecentDir(dir);

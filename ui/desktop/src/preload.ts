@@ -104,6 +104,7 @@ type ElectronAPI = {
   getConfig: () => Record<string, unknown>;
   hideWindow: () => void;
   directoryChooser: () => Promise<Electron.OpenDialogReturnValue>;
+  selectWorkspaceFolder: () => Promise<Electron.OpenDialogReturnValue>;
   createChatWindow: (options?: CreateChatWindowOptions) => void;
   logInfo: (txt: string) => void;
   showNotification: (data: NotificationData) => void;
@@ -205,6 +206,7 @@ const electronAPI: ElectronAPI = {
   },
   hideWindow: () => ipcRenderer.send('hide-window'),
   directoryChooser: () => ipcRenderer.invoke('directory-chooser'),
+  selectWorkspaceFolder: () => ipcRenderer.invoke('select-workspace-folder'),
   createChatWindow: (options?: CreateChatWindowOptions) =>
     ipcRenderer.send('create-chat-window', options || {}),
   logInfo: (txt: string) => ipcRenderer.send('logInfo', txt),
