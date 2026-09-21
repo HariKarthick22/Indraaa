@@ -9,7 +9,7 @@
 import { createClient } from "@hey-api/openapi-ts";
 import * as fs from "fs/promises";
 import { dirname, resolve } from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import * as prettier from "prettier";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -238,7 +238,7 @@ ${methodDefs.join("\n")}
 }
 
 // Run main if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
     console.error(err);
     process.exit(1);
