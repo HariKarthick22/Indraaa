@@ -57,6 +57,8 @@ export { AppearancePanel } from './AppearancePanel';
 export type { AppearancePanelProps } from './AppearancePanel';
 export { LockOverlay } from './LockOverlay';
 export type { LockOverlayProps } from './LockOverlay';
+export { WorkspaceFolders } from './WorkspaceFolders';
+export type { WorkspaceFolderMode, WorkspaceFolderEntry, WorkspaceFoldersProps } from './WorkspaceFolders';
 export { TraceScreen, planFromEvents, toolCallsFromEvents } from './TraceScreen';
 export type { TraceScreenProps, TraceRun, TracedToolCall } from './TraceScreen';
 export { ApprovalsQueue } from './ApprovalsQueue';
