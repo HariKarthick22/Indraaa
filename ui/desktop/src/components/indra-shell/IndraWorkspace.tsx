@@ -45,7 +45,7 @@ function segmentButton(active: boolean): CSSProperties {
     height: 28,
     padding: '0 var(--space-4)',
     borderRadius: 'var(--r-sm)',
-    border: '1px solid ' + (active ? 'var(--focus)' : 'var(--line-strong)'),
+    border: '1px solid ' + (active ? 'var(--text-hi)' : 'var(--line-strong)'),
     background: active ? 'var(--raised)' : 'transparent',
     color: active ? 'var(--text-hi)' : 'var(--text-dim)',
     fontFamily: 'var(--font-ui)',
@@ -87,6 +87,7 @@ function MemoryDestination() {
               type="button"
               role="tab"
               aria-selected={view === v}
+              className="indra-focusable"
               style={segmentButton(view === v)}
               onClick={() => setView(v)}
             >

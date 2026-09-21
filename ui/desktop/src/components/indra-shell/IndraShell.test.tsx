@@ -39,7 +39,7 @@ describe('IndraShell', () => {
     expect(screen.getByRole('button', { name: 'Profile' })).toBeInTheDocument();
   });
 
-  it('marks the active destination with the focus border and text-hi color', () => {
+  it('marks the active destination with a text-hi left bar and text-hi color', () => {
     renderShell({ active: 'memory' });
 
     const activeButton = screen.getByRole('button', { name: 'Memory' });
@@ -47,7 +47,7 @@ describe('IndraShell', () => {
     expect(activeButton).toHaveStyle({
       borderLeftWidth: '2px',
       borderLeftStyle: 'solid',
-      borderLeftColor: 'var(--focus)',
+      borderLeftColor: 'var(--text-hi)',
       color: 'var(--text-hi)',
     });
 

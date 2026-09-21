@@ -106,7 +106,11 @@ export function IndraRail({ active, onSelect }: IndraRailProps) {
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
                 onClick={() => onSelect(item.id)}
-                className={isActive ? 'indra-rail-item indra-rail-item--active' : 'indra-rail-item'}
+                className={
+                  isActive
+                    ? 'indra-rail-item indra-rail-item--active indra-focusable'
+                    : 'indra-rail-item indra-focusable'
+                }
                 style={{
                   width: '100%',
                   height: 48,
@@ -117,7 +121,7 @@ export function IndraRail({ active, onSelect }: IndraRailProps) {
                   border: 'none',
                   borderLeftWidth: '2px',
                   borderLeftStyle: 'solid',
-                  borderLeftColor: isActive ? 'var(--focus)' : 'transparent',
+                  borderLeftColor: isActive ? 'var(--text-hi)' : 'transparent',
                   color: isActive ? 'var(--text-hi)' : 'var(--text-dim)',
                   cursor: 'pointer',
                   transition: `color var(--m-ui) var(--ease-ui), border-color var(--m-ui) var(--ease-ui)`,
@@ -132,6 +136,7 @@ export function IndraRail({ active, onSelect }: IndraRailProps) {
       <button
         type="button"
         aria-label="Profile"
+        className="indra-focusable"
         style={{
           width: '100%',
           height: 48,
