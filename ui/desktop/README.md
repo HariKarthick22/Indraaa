@@ -93,7 +93,7 @@ Electron Forge writes packages to architecture-specific directories:
 | DEB | `out/make/deb/x64/*_amd64.deb` | `out/make/deb/arm64/*_arm64.deb` |
 | RPM | `out/make/rpm/x64/*.x86_64.rpm` | `out/make/rpm/arm64/*.arm64.rpm` |
 | Flatpak | `out/make/flatpak/x86_64/*.flatpak` | `out/make/flatpak/aarch64/*.flatpak` |
-| Application | `out/Goose-linux-x64/` | `out/Goose-linux-arm64/` |
+| Application | `out/INDRA-linux-x64/` | `out/INDRA-linux-arm64/` |
 
 ### Windows
 Use the existing Windows build process as documented.
