@@ -239,7 +239,7 @@ export function ToolRow({ call, result, expanded, onToggle }: ToolRowProps) {
               <span style={mono}>{call.sandbox_backend}</span>
               <span>{badge.word}</span>
               {result.citations.length > 0 ? (
-                <span>
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {`${result.citations.length} citation${result.citations.length === 1 ? '' : 's'}`}
                 </span>
               ) : null}
