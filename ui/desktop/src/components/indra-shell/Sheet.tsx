@@ -142,6 +142,7 @@ export function Sheet({ open, width, onClose, title, children }: SheetProps) {
               type="button"
               onClick={onClose}
               aria-label="Close"
+              className="indra-focusable"
               style={{
                 width: 24,
                 height: 24,

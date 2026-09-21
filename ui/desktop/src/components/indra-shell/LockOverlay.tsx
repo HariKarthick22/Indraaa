@@ -172,6 +172,7 @@ export function LockOverlay({ open, mode, attemptsRemaining, onUnlock, children 
                       value={passphrase}
                       onChange={(event) => setPassphrase(event.target.value)}
                       autoComplete="current-password"
+                      className="indra-focusable"
                       style={{
                         height: 32,
                         padding: '0 var(--space-4)',
@@ -187,6 +188,7 @@ export function LockOverlay({ open, mode, attemptsRemaining, onUnlock, children 
                     />
                     <button
                       type="submit"
+                      className="indra-focusable"
                       style={{
                         height: 32,
                         padding: '0 var(--space-5)',
@@ -208,6 +210,7 @@ export function LockOverlay({ open, mode, attemptsRemaining, onUnlock, children 
                     type="button"
                     ref={idpButtonRef}
                     onClick={() => onUnlock('')}
+                    className="indra-focusable"
                     style={{
                       height: 32,
                       padding: '0 var(--space-5)',

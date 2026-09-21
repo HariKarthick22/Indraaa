@@ -389,6 +389,7 @@ export function AppearancePanel({ theme, onChange }: AppearancePanelProps) {
           <button
             type="button"
             onClick={applyBlob}
+            className="indra-focusable"
             style={{
               alignSelf: 'flex-start',
               height: 28,

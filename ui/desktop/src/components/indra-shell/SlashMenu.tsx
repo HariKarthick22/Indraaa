@@ -62,6 +62,7 @@ export function SlashMenu({ query, commands, onPick }: SlashMenuProps) {
           role="option"
           aria-selected={false}
           onClick={() => onPick(command)}
+          className="indra-focusable"
           style={{
             display: 'flex',
             alignItems: 'baseline',
