@@ -1,9 +1,26 @@
 import type { StreamSpeedName } from './stream/useJitterBuffer';
 
-export type ThemeBase = 'dark' | 'light' | 'high-contrast' | 'oled';
-export type ThemeDensity = 'compact' | 'comfortable';
-export type ThemeMotion = 'full' | 'reduced' | 'none';
-export type TraceDensityLevel = 'quiet' | 'normal' | 'trace';
+// Exported as both a const array (for an Appearance-panel <select>'s options)
+// and the type it derives from, so the two can never drift apart.
+export const THEME_BASES = ['dark', 'light', 'high-contrast', 'oled'] as const;
+export type ThemeBase = (typeof THEME_BASES)[number];
+
+export const THEME_DENSITIES = ['compact', 'comfortable'] as const;
+export type ThemeDensity = (typeof THEME_DENSITIES)[number];
+
+export const THEME_MOTIONS = ['full', 'reduced', 'none'] as const;
+export type ThemeMotion = (typeof THEME_MOTIONS)[number];
+
+export const THEME_TRACE_DENSITIES = ['quiet', 'normal', 'trace'] as const;
+export type TraceDensityLevel = (typeof THEME_TRACE_DENSITIES)[number];
+/** Alias matching the Appearance panel's naming for the other `Theme*` unions. */
+export type ThemeTraceDensity = TraceDensityLevel;
+
+export const THEME_STREAMS = ['calm', 'normal', 'instant'] as const satisfies readonly StreamSpeedName[];
+export type ThemeStream = StreamSpeedName;
+
+export const THEME_SCALES = [0.9, 1, 1.1, 1.25] as const;
+export type ThemeScale = (typeof THEME_SCALES)[number];
 
 export interface ThemeFont {
   ui: string;
@@ -41,9 +58,6 @@ export const DEFAULT_THEME: Theme = {
 
 /** Stays pasteable into a single field — enforced by `parseTheme`. */
 export const THEME_BLOB_LIMIT = 1024;
-
-const VALID_BASES: readonly ThemeBase[] = ['dark', 'light', 'high-contrast', 'oled'];
-const VALID_SCALES: readonly number[] = [0.9, 1, 1.1, 1.25];
 
 export function themeByteLength(blob: string): number {
   return new TextEncoder().encode(blob).length;
@@ -97,14 +111,14 @@ export function parseTheme(blob: string): ParseThemeResult {
       : DEFAULT_THEME.overrides,
   } as Theme;
 
-  if (!VALID_BASES.includes(theme.base)) {
+  if (!THEME_BASES.includes(theme.base)) {
     return {
       ok: false,
       error: `Unknown theme base "${theme.base}" — choose dark, light, high-contrast or oled.`,
     };
   }
 
-  if (!VALID_SCALES.includes(theme.font.scale)) {
+  if (!THEME_SCALES.includes(theme.font.scale as (typeof THEME_SCALES)[number])) {
     return {
       ok: false,
       error: `Font scale must be 0.9, 1, 1.1 or 1.25, not ${theme.font.scale}.`,

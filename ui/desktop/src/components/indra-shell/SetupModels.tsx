@@ -166,7 +166,7 @@ export function SetupModels({ rows, onAddDirectory, onAddServer, onNext }: Setup
         </form>
 
         <form onSubmit={handleAddServer} style={panel}>
-          <h2 style={panelTitle}>Add a model server</h2>
+          <h2 style={panelTitle}>Connect a model server</h2>
           <div style={inputRow}>
             <input
               type="text"

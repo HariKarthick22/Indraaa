@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { PlanStep } from '../../indra/events';
-import { formatDuration } from '../../utils/usageFormatting';
 
 export type StepState = 'queued' | 'running' | 'done' | 'skipped' | 'failed';
 
@@ -36,8 +35,14 @@ function effectiveState(stepStates: Record<string, StepStateInfo>, id: string): 
   return stepStates[id] ?? { state: 'queued' };
 }
 
-// The row duration reads "0.3s"; the live-region sentence spells it out in
-// words so a screen reader does not have to parse a unit abbreviation.
+// The row duration always reads as seconds ("0.3s"), unlike the shared
+// usageFormatting helper which switches to "300ms" below 1s.
+function formatDurationShort(ms: number): string {
+  return `${(ms / 1000).toFixed(1).replace(/\.0$/, '')}s`;
+}
+
+// The live-region sentence spells the duration out in words so a screen
+// reader does not have to parse a unit abbreviation.
 function formatDurationWords(ms: number): string {
   if (ms < 1000) return `${Math.round(ms)} milliseconds`;
   if (ms < 60_000) return `${(ms / 1000).toFixed(1).replace(/\.0$/, '')} seconds`;
@@ -180,7 +185,7 @@ function StepRow({ step, info, superseded, inserted }: StepRowProps) {
             flexShrink: 0,
           }}
         >
-          {formatDuration(info.ms)}
+          {formatDurationShort(info.ms)}
         </span>
       ) : null}
     </div>
