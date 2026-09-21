@@ -57,7 +57,7 @@ if (-not (Test-Path $binDir)) { New-Item -ItemType Directory -Path $binDir -Forc
 
 $indraBinary = "target\release\indra.exe"
 if (-not (Test-Path $indraBinary)) {
-    Write-Host "Backend binary not found: $gooseBinary" -ForegroundColor Red
+    Write-Host "Backend binary not found: $indraBinary" -ForegroundColor Red
     exit 1
 }
 Copy-Item $indraBinary "$binDir\" -Force
@@ -82,7 +82,7 @@ Write-Host ""
 
 # Step 4: Build desktop assets
 Write-Host "[5/7] Building Goose ACP client, clearing Vite cache, and compiling i18n messages..." -ForegroundColor Yellow
-pnpm run build-goose-acp-client
+pnpm run build-indra-acp-client
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Goose ACP client build or Vite cache cleanup failed!" -ForegroundColor Red
     Pop-Location
@@ -126,10 +126,10 @@ Write-Host ""
 # Done
 Write-Host "=== Build Complete ===" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Packaged app:  ui\desktop\out\Goose-win32-x64\Goose.exe" -ForegroundColor Green
+Write-Host "Packaged app:  ui\desktop\out\INDRA-win32-x64\INDRA.exe" -ForegroundColor Green
 Write-Host "Installer:     ui\desktop\out\make\" -ForegroundColor Green
 Write-Host ""
 Write-Host "To run the app directly:" -ForegroundColor Yellow
-Write-Host "  .\ui\desktop\out\Goose-win32-x64\Goose.exe"
+Write-Host "  .\ui\desktop\out\INDRA-win32-x64\INDRA.exe"
 Write-Host ""
 Write-Host "To install, find the .exe installer in ui\desktop\out\make\"

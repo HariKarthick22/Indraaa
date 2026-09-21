@@ -2,7 +2,7 @@ node_modules
 .vite/
 out
 src/bin/goosed
-src/bin/goose-npm/
+src/bin/indra-npm/
 /src/bin/*.exe
 /src/bin/*.cmd
 /src/platform/windows/bin/*.dll

@@ -266,11 +266,11 @@ jobs:
         shell: bash
         run: |
           cd ui/desktop
-          mkdir -p ./out/Goose-win32-x64/resources/bin
-          cp -r src/bin/* out/Goose-win32-x64/resources/bin/
+          mkdir -p ./out/INDRA-win32-x64/resources/bin
+          cp -r src/bin/* out/INDRA-win32-x64/resources/bin/
 
           mkdir -p ./dist-windows
-          cp -r ./out/Goose-win32-x64/* ./dist-windows/
+          cp -r ./out/INDRA-win32-x64/* ./dist-windows/
 
           ls -la ./dist-windows/
           ls -la ./dist-windows/resources/bin/

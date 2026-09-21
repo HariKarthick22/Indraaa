@@ -11,7 +11,7 @@
   "scripts": {
     "postinstall": "pnpm run build-indra-acp-client",
     "typecheck": "tsc --noEmit",
-    "build-indra-acp-client": "pnpm --filter @aaif/indra-acp-client run build && pnpm run clean-vite-cache",
+    "build-indra-acp-client": "pnpm --filter @aaif/goose-acp-client run build && pnpm run clean-vite-cache",
     "clean-vite-cache": "node scripts/clean-vite-cache.js",
     "start-gui": "pnpm run build-indra-acp-client && pnpm run i18n:compile && electron-forge start",
     "start-gui-debug": "pnpm run build-indra-acp-client && pnpm run i18n:compile && electron-forge start -- --inspect=9229",

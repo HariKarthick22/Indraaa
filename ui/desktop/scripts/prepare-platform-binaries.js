@@ -20,7 +20,7 @@ const windowsFiles = [
     '*.exe',
     '*.dll',
     '*.cmd',
-    'goose-npm/**/*'
+    'indra-npm/**/*'
 ];
 
 // Helper function to check if file matches patterns
