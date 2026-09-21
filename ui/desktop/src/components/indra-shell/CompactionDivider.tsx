@@ -52,6 +52,7 @@ export function CompactionDivider({
       <button
         type="button"
         onClick={onShow}
+        className="indra-focusable"
         style={{
           flexShrink: 0,
           height: 22,

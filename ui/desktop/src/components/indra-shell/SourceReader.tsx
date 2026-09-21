@@ -74,6 +74,7 @@ export function SourceReader({
             onClick={onToggleOverlay}
             aria-pressed={showOverlay}
             aria-label={showOverlay ? 'Hide OCR overlay' : 'Show OCR overlay'}
+            className="indra-focusable"
             style={{
               height: 24,
               padding: '0 var(--space-3)',
@@ -117,6 +118,7 @@ export function SourceReader({
                           ? `OCR region, page ${box.page}, low confidence`
                           : `OCR region, page ${box.page}`
                       }
+                      className="indra-focusable"
                       style={{
                         position: 'absolute',
                         left: box.bbox[0],
@@ -124,7 +126,7 @@ export function SourceReader({
                         width: box.bbox[2],
                         height: box.bbox[3],
                         padding: 0,
-                        background: highlighted ? 'rgba(76, 125, 240, 0.14)' : 'transparent',
+                        background: highlighted ? 'var(--hover)' : 'transparent',
                         border: `${borderWidth}px solid ${
                           lowConfidence ? 'var(--degraded)' : 'var(--line-strong)'
                         }`,

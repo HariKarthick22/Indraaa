@@ -267,6 +267,7 @@ export function CommandPalette({ open, entries, onClose, placeholder }: CommandP
                   setHighlight(0);
                   inputRef.current?.focus();
                 }}
+                className="indra-focusable"
                 style={{
                   height: 28,
                   padding: '0 var(--space-4)',

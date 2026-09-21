@@ -245,7 +245,9 @@ export function PlanCard({ steps, stepStates, supersededIds = [], insertedIds = 
           <span aria-hidden="true" style={{ color: 'var(--text-faint)' }}>
             {'·'}
           </span>
-          <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
+          <span
+            style={{ color: 'var(--text-dim)', fontWeight: 400, fontVariantNumeric: 'tabular-nums' }}
+          >
             {`${steps.length} step${steps.length === 1 ? '' : 's'}`}
           </span>
         </span>

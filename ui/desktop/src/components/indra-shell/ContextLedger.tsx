@@ -149,6 +149,7 @@ export function ContextLedger({ sections, onPin, onDrop }: ContextLedgerProps) {
                   onClick={() => onPin(row.id)}
                   aria-pressed={row.pinned}
                   aria-label={row.pinned ? `Unpin ${row.label}` : `Pin ${row.label}`}
+                  className="indra-focusable"
                   style={{
                     ...rowButtonStyle,
                     color: row.pinned ? 'var(--text-hi)' : 'var(--text-dim)',
@@ -160,6 +161,7 @@ export function ContextLedger({ sections, onPin, onDrop }: ContextLedgerProps) {
                   type="button"
                   onClick={() => onDrop(row.id)}
                   aria-label={`Drop ${row.label}`}
+                  className="indra-focusable"
                   style={{ ...rowButtonStyle, color: 'var(--text-dim)' }}
                 >
                   Drop

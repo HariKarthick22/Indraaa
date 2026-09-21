@@ -152,14 +152,25 @@ export function ApprovalsQueue({
           ) : null}
 
           <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-            <button type="button" style={button} onClick={() => onApprove(proposal.id)}>
+            <button
+              type="button"
+              className="indra-focusable"
+              style={button}
+              onClick={() => onApprove(proposal.id)}
+            >
               Approve
             </button>
-            <button type="button" style={button} onClick={() => onReject(proposal.id)}>
+            <button
+              type="button"
+              className="indra-focusable"
+              style={button}
+              onClick={() => onReject(proposal.id)}
+            >
               Reject
             </button>
             <button
               type="button"
+              className="indra-focusable"
               style={{ ...button, background: 'transparent' }}
               onClick={() => onRequestEvidence(proposal.id)}
             >

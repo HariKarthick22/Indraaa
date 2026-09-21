@@ -107,13 +107,14 @@ export function IndraTopBar({
         value={sessionTitle}
         onChange={(event) => onSessionTitleChange(event.target.value)}
         aria-label="Session title"
+        className="indra-focusable"
         style={{
           flex: '1 1 auto',
           minWidth: 0,
           background: 'transparent',
           border: 'none',
-          outline: 'none',
           color: 'var(--text-hi)',
+          caretColor: 'var(--focus)',
           fontFamily: 'var(--font-ui)',
           fontSize: 'var(--t-13)',
           fontWeight: 500,
@@ -124,6 +125,7 @@ export function IndraTopBar({
           type="button"
           onClick={onOpenLedger}
           aria-label="Open context ledger"
+          className="indra-focusable"
           style={{
             flexShrink: 0,
             display: 'flex',
@@ -153,6 +155,7 @@ export function IndraTopBar({
         type="button"
         onClick={onToggleTheme}
         aria-label="Toggle theme"
+        className="indra-focusable"
         style={{
           flexShrink: 0,
           width: 24,
