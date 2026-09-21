@@ -23,7 +23,7 @@ const i18n = defineMessages({
 export const GoosehintsSection = () => {
   const intl = useIntl();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const directory = window.appConfig?.get('GOOSE_WORKING_DIR') as string;
+  const directory = window.appConfig?.get('INDRA_WORKING_DIR') as string;
 
   return (
     <>

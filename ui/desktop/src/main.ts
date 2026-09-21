@@ -2681,7 +2681,7 @@ async function appMain() {
     if (shortcuts.focusWindow) {
       fileMenu.submenu.append(
         new MenuItem({
-          label: menuT('Focus Goose Window'),
+          label: menuT('Focus INDRA Window'),
           accelerator: shortcuts.focusWindow,
           click() {
             focusWindow();

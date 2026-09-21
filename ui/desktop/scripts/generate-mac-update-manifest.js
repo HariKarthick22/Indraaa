@@ -63,6 +63,10 @@ function yamlString(value) {
 }
 
 function writeManifest({ directory, version }) {
+  // sourceName must match the zip artifacts bundle-macos.yml actually uploads
+  // (see the `actions/upload-artifact` `path:` values there); updateName must
+  // match the `INDRA*.zip` glob release.yml uses to attach assets to the
+  // GitHub release, or the renamed copy never gets uploaded.
   const files = [
     {
       sourceName: 'INDRA.zip',

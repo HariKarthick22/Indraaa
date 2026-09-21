@@ -105,6 +105,23 @@ describe('addExtensionFromDeepLink', () => {
       );
     });
 
+    it('should allow indra for bundled MCP deeplinks', async () => {
+      const url =
+        'goose://extension?cmd=indra&arg=mcp&arg=memory&name=Memory&description=Memory';
+
+      await addExtensionFromDeepLink(url, mockAddExtension, mockSetView);
+
+      expect(mockAddExtension).toHaveBeenCalledWith(
+        'Memory',
+        expect.objectContaining({
+          type: 'stdio',
+          cmd: 'indra',
+          args: ['mcp', 'memory'],
+        }),
+        true
+      );
+    });
+
     it('should reject legacy goosed deeplinks', async () => {
       vi.mocked(toastService.handleError).mockImplementationOnce(() => {
         throw new Error('Invalid command');

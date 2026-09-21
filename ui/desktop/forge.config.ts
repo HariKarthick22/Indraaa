@@ -17,10 +17,15 @@ let cfg = {
     signWithParams: '/fd sha256 /tr http://timestamp.digicert.com /td sha256',
   },
   // Protocol registration
+  // The app's deep-link generators/parsers (recipe deeplinks, session-resume
+  // links, extension-install links -- see recipe/index.ts, main.ts, and
+  // crates/indra-cli/src/commands/recipe.rs) all still speak the `goose://`
+  // scheme, so it must stay registered alongside `indra://` or the OS will
+  // never route those links to a packaged build of this app.
   protocols: [
     {
       name: 'INDRAProtocol',
-      schemes: ['indra'],
+      schemes: ['indra', 'goose'],
     },
   ],
   // macOS Info.plist extensions for drag-and-drop support
@@ -122,7 +127,8 @@ module.exports = {
         options: {
           id: 'io.github.aaif_go.indra', // NOTE: kept for backwards compat with existing installs
           categories: ['Development'],
-          mimeType: ['x-scheme-handler/indra'],
+          // Keep both handlers registered -- see the `protocols` comment above.
+          mimeType: ['x-scheme-handler/indra', 'x-scheme-handler/goose'],
           icon: {
             scalable: 'src/images/icon.svg',
             '512x512': 'src/images/icon-512.png',
