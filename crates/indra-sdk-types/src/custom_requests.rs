@@ -2345,6 +2345,81 @@ pub struct EgressProbeResponse {
     pub reason: String,
 }
 
+/// How the agent may use files under a configured workspace folder (see
+/// `crate::security::workspace_scope::WorkspaceFolderMode` in the `indra`
+/// crate, which this type mirrors for the wire).
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum WorkspaceFolderMode {
+    /// The agent can read files under this folder but must never write,
+    /// delete, or rename anything there.
+    #[default]
+    ReadOnly,
+    /// The agent can read files under this folder, and may propose
+    /// writes/deletes/renames — each still needs approval through the
+    /// normal tool-confirmation flow before it happens.
+    Controlled,
+}
+
+/// A single agent-visible local folder and the mode it's visible in.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceFolderDto {
+    pub path: String,
+    pub mode: WorkspaceFolderMode,
+}
+
+/// A requested folder that could not be configured, with a human-readable reason
+/// (e.g. it doesn't exist, isn't a directory, or couldn't be resolved).
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceFolderRejection {
+    pub path: String,
+    pub reason: String,
+}
+
+/// Set the local folders the agent may see for a session, replacing any
+/// previously configured set for that session. Folders that fail validation
+/// are reported in the response's `rejected` list and excluded — the
+/// folders that did validate are still applied, so one bad entry doesn't
+/// block the rest of the picker's selection.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcRequest)]
+#[request(
+    method = "_goose/unstable/session/workspace-folders/set",
+    response = SetWorkspaceFoldersResponse
+)]
+#[serde(rename_all = "camelCase")]
+pub struct SetWorkspaceFoldersRequest {
+    pub session_id: String,
+    #[serde(default)]
+    pub folders: Vec<WorkspaceFolderDto>,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcResponse)]
+#[serde(rename_all = "camelCase")]
+pub struct SetWorkspaceFoldersResponse {
+    #[serde(default)]
+    pub rejected: Vec<WorkspaceFolderRejection>,
+}
+
+/// Read the local folders currently configured for a session.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcRequest)]
+#[request(
+    method = "_goose/unstable/session/workspace-folders/get",
+    response = GetWorkspaceFoldersResponse
+)]
+#[serde(rename_all = "camelCase")]
+pub struct GetWorkspaceFoldersRequest {
+    pub session_id: String,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcResponse)]
+#[serde(rename_all = "camelCase")]
+pub struct GetWorkspaceFoldersResponse {
+    #[serde(default)]
+    pub folders: Vec<WorkspaceFolderDto>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
