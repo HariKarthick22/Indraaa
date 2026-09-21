@@ -77,7 +77,9 @@ export const findGooseBinaryPath = (options: FindGooseBinaryOptions = {}): strin
     throw new Error(`Invalid GOOSE_BINARY path: ${pathFromEnv} (pwd is ${process.cwd()})`);
   }
 
-  const binaryName = process.platform === 'win32' ? 'goose.exe' : 'goose';
+  // crates/indra-cli/Cargo.toml names this bin target "indra", and
+  // `just copy-binary` stages it under this same name — this must match both.
+  const binaryName = process.platform === 'win32' ? 'indra.exe' : 'indra';
   const possiblePaths: string[] = [];
 
   if (isPackaged && resourcesPath) {
@@ -98,7 +100,7 @@ export const findGooseBinaryPath = (options: FindGooseBinaryOptions = {}): strin
   }
 
   throw new Error(
-    `Goose binary not found in any of the possible paths: ${possiblePaths.join(', ')}`
+    `indra binary not found in any of the possible paths: ${possiblePaths.join(', ')}`
   );
 };
 
