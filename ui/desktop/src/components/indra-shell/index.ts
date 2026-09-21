@@ -20,3 +20,40 @@ export { SourcesLibrary } from './SourcesLibrary';
 export type { SourcesLibraryProps, DocumentSummary, SourcesView } from './SourcesLibrary';
 export { SlashMenu } from './SlashMenu';
 export type { SlashMenuProps } from './SlashMenu';
+export { StreamText, announcedText } from './StreamText';
+export type { StreamTextProps } from './StreamText';
+export { ToolRow } from './ToolRow';
+export type { ToolCallEvent, ToolResultEvent, ToolRowProps } from './ToolRow';
+export { CitationChip } from './CitationChip';
+export type { CitationChipProps } from './CitationChip';
+export { Sheet } from './Sheet';
+export type { SheetProps, SheetWidth } from './Sheet';
+export { ContextLedger } from './ContextLedger';
+export type { ContextLedgerProps, LedgerRow, LedgerSection } from './ContextLedger';
+export { CompactionDivider } from './CompactionDivider';
+export type { CompactionDividerProps } from './CompactionDivider';
+export { SourceReader, borderWidthForConfidence } from './SourceReader';
+export type { SourceReaderProps } from './SourceReader';
+export { Constellation } from './Constellation';
+export type { ConstellationProps, MemoryEdge, MemoryEdgeKind } from './Constellation';
+export { MemoryTimeline } from './MemoryTimeline';
+export type {
+  MemoryTimelineProps,
+  MemoryTimelineLane,
+  TimelineEvent,
+  TimelineEventKind,
+} from './MemoryTimeline';
+export { IndraMark } from './IndraMark';
+export type { IndraMarkProps } from './IndraMark';
+export { BootSequence } from './BootSequence';
+export type { BootSequenceProps, BootStep, BootStepState } from './BootSequence';
+export { SetupIdentity } from './SetupIdentity';
+export type { SetupIdentityProps, IdentityMode } from './SetupIdentity';
+export { SetupModels } from './SetupModels';
+export type { SetupModelsProps } from './SetupModels';
+export { SetupSovereignty } from './SetupSovereignty';
+export type { SetupSovereigntyProps, SovereigntyProbeResult } from './SetupSovereignty';
+export { AppearancePanel } from './AppearancePanel';
+export type { AppearancePanelProps } from './AppearancePanel';
+export { LockOverlay } from './LockOverlay';
+export type { LockOverlayProps } from './LockOverlay';
