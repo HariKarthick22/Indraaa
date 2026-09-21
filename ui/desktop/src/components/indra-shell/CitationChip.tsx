@@ -124,7 +124,6 @@ export function CitationChip({ index, source, onOpen }: CitationChipProps) {
             background: 'var(--surface)',
             border: '1px solid var(--line)',
             borderRadius: 'var(--r-md)',
-            boxShadow: 'var(--shadow-pop)',
             fontFamily: 'var(--font-ui)',
             fontSize: 'var(--t-11)',
             lineHeight: 'var(--t-11--line-height)',
