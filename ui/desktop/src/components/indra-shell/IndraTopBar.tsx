@@ -5,6 +5,9 @@ export interface IndraTopBarProps {
   budgetBytes: number;
   onToggleTheme: () => void;
   onOpenLedger?: () => void;
+  /** Undefined while the first egress-log read is still in flight. */
+  sealed?: boolean;
+  onOpenSovereignty?: () => void;
 }
 
 export type ContextGaugeState = 'ok' | 'near-cap' | 'at-cap';
@@ -34,6 +37,8 @@ export function IndraTopBar({
   budgetBytes,
   onToggleTheme,
   onOpenLedger,
+  sealed,
+  onOpenSovereignty,
 }: IndraTopBarProps) {
   const gaugeState = contextGaugeState(sessionBytes, budgetBytes);
   const ratio = budgetBytes > 0 ? Math.min(Math.max(sessionBytes / budgetBytes, 0), 1) : 0;
@@ -151,6 +156,41 @@ export function IndraTopBar({
           {gauge}
         </div>
       )}
+      {sealed !== undefined ? (
+        <button
+          type="button"
+          onClick={onOpenSovereignty}
+          disabled={!onOpenSovereignty}
+          aria-label={sealed ? 'Sealed, no external calls observed' : 'Egress reached the network'}
+          className={onOpenSovereignty ? 'indra-focusable' : undefined}
+          style={{
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
+            cursor: onOpenSovereignty ? 'pointer' : 'default',
+            fontFamily: 'var(--font-ui)',
+            fontSize: 'var(--t-11)',
+            lineHeight: 'var(--t-11--line-height)',
+            color: sealed ? 'var(--text-dim)' : 'var(--blocked)',
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              width: 6,
+              height: 6,
+              flexShrink: 0,
+              borderRadius: 'var(--r-full)',
+              background: sealed ? 'var(--sealed)' : 'var(--blocked)',
+            }}
+          />
+          <span>{sealed ? 'Sealed' : 'Reached network'}</span>
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={onToggleTheme}

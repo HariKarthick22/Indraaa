@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { acpEgressProbe, acpEgressStatus, type EgressAttempt } from '../../acp/sovereignty';
+import { acpEgressProbe } from '../../acp/sovereignty';
 import { useChatContext } from '../../contexts/ChatContext';
 import { useChatSession } from '../../hooks/useChatSession';
 import { ChatState } from '../../types/chatState';
@@ -8,6 +8,7 @@ import { buildPaletteIndex, type PaletteEntry } from '../../indra/paletteIndex';
 import { skillCommandsToPaletteEntries, useSkillCommands } from '../../indra/skills';
 import { useKeymap } from '../../indra/useKeymap';
 import { useTranscriptTurns } from '../../indra/useTranscriptTurns';
+import { isSealed, useEgressStatus } from '../../indra/useEgressStatus';
 import { AppearancePanel } from './AppearancePanel';
 import { CommandPalette } from './CommandPalette';
 import { ContextLedger } from './ContextLedger';
@@ -221,24 +222,9 @@ function TraceDestination() {
 }
 
 function SovereigntyDestination() {
-  const [attempts, setAttempts] = useState<EgressAttempt[]>([]);
-  const [uptimeSeconds, setUptimeSeconds] = useState(0);
+  const { attempts, uptimeSeconds, refresh } = useEgressStatus();
   const { models } = useLocalModels();
   const modelsLoaded = models.filter((m) => m.installed).length;
-
-  const refresh = useCallback(async () => {
-    try {
-      const status = await acpEgressStatus();
-      setAttempts(status.attempts);
-      setUptimeSeconds(status.uptimeSeconds);
-    } catch (error) {
-      console.error('Failed to read sovereignty status:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
 
   const handleProbe = useCallback(
     async (url: string) => {
@@ -296,6 +282,8 @@ export function IndraWorkspace() {
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   const skillCommands = useSkillCommands();
+  const { attempts, loading: egressLoading } = useEgressStatus();
+  const sealed = egressLoading ? undefined : isSealed(attempts);
 
   useEffect(() => {
     applyTheme(theme);
@@ -354,6 +342,8 @@ export function IndraWorkspace() {
       budgetBytes={32768}
       onToggleTheme={toggleTheme}
       onOpenLedger={() => setSheetContent('context-ledger')}
+      sealed={sealed}
+      onOpenSovereignty={() => setActive('sovereignty')}
       fullBleed={active === 'work'}
     >
       {active === 'work' && <WorkDestination />}
