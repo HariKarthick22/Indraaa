@@ -1,14 +1,19 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { acpEgressProbe, acpEgressStatus, type EgressAttempt } from '../../acp/sovereignty';
+import { useChatContext } from '../../contexts/ChatContext';
+import { useChatSession } from '../../hooks/useChatSession';
+import { ChatState } from '../../types/chatState';
 import { DEFAULT_THEME, applyTheme, type Theme } from '../../indra/theme';
 import { buildPaletteIndex, type PaletteEntry } from '../../indra/paletteIndex';
 import { skillCommandsToPaletteEntries, useSkillCommands } from '../../indra/skills';
 import { useKeymap } from '../../indra/useKeymap';
+import { useTranscriptTurns } from '../../indra/useTranscriptTurns';
 import { AppearancePanel } from './AppearancePanel';
 import { CommandPalette } from './CommandPalette';
 import { ContextLedger } from './ContextLedger';
 import { Constellation } from './Constellation';
 import { IndraShell } from './IndraShell';
+import { IndraTranscript } from './IndraTranscript';
 import type { IndraRailDestination } from './IndraRail';
 import { MemoryLedger, type MemoryNode } from './MemoryLedger';
 import { MemoryTimeline } from './MemoryTimeline';
@@ -57,15 +62,103 @@ function segmentButton(active: boolean): CSSProperties {
   };
 }
 
-/** Work screen isn't wired here: it renders the live chat transcript, which lives outside indra-shell. */
-function WorkPlaceholder() {
+const composerBar: CSSProperties = {
+  display: 'flex',
+  alignItems: 'flex-end',
+  gap: 'var(--space-3)',
+  width: '100%',
+  maxWidth: '78ch',
+  margin: '0 auto',
+  padding: 'var(--space-4)',
+  background: 'var(--surface)',
+  border: '1px solid var(--line-strong)',
+  borderRadius: 'var(--r-lg)',
+};
+
+/**
+ * Backed by the same session state the legacy hub uses (`useChatContext` +
+ * `useChatSession`), so sending a message here creates/continues a real
+ * session rather than a UI-only mock. `useTranscriptTurns` groups the
+ * backend's one-event-per-message stream into the turns IndraTranscript
+ * expects.
+ */
+function WorkDestination() {
+  const chatContext = useChatContext();
+  const sessionId = chatContext?.chat.sessionId ?? '';
+  const [draft, setDraft] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const { messages, chatState, handleSubmit } = useChatSession({
+    sessionId,
+    onStreamFinish: () => {},
+  });
+  const turns = useTranscriptTurns(messages, chatState);
+  const isBusy = chatState === ChatState.Thinking || chatState === ChatState.Streaming;
+
+  const submit = useCallback(() => {
+    const text = draft.trim();
+    if (!text || isBusy) return;
+    setDraft('');
+    void handleSubmit({ msg: text, images: [] });
+  }, [draft, isBusy, handleSubmit]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-      <h1 style={panelHeading}>Work</h1>
-      <p style={{ color: 'var(--text-dim)', fontSize: 'var(--t-13)', margin: 0 }}>
-        The transcript, plan card, and tool rows mount here once wired to the session's live
-        message list.
-      </p>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, gap: 'var(--space-4)' }}>
+      <div style={{ flex: '1 1 auto', minHeight: 0 }}>
+        <IndraTranscript turns={turns} />
+      </div>
+      <div style={composerBar}>
+        <textarea
+          ref={textareaRef}
+          className="indra-focusable"
+          value={draft}
+          disabled={isBusy}
+          placeholder={isBusy ? 'INDRA is working…' : 'Ask INDRA anything'}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              submit();
+            }
+          }}
+          rows={1}
+          style={{
+            flex: '1 1 auto',
+            resize: 'none',
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            color: 'var(--text-hi)',
+            caretColor: 'var(--focus)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: 'var(--t-14)',
+            lineHeight: 'var(--t-14--line-height)',
+            maxHeight: '10em',
+          }}
+        />
+        <button
+          type="button"
+          className="indra-focusable"
+          disabled={isBusy || draft.trim().length === 0}
+          onClick={submit}
+          style={{
+            height: 32,
+            padding: '0 var(--space-5)',
+            background: 'var(--raised)',
+            border: '1px solid var(--line-strong)',
+            borderRadius: 'var(--r-sm)',
+            color: 'var(--text-hi)',
+            fontFamily: 'var(--font-ui)',
+            fontSize: 'var(--t-12)',
+            fontWeight: 500,
+            cursor: isBusy ? 'default' : 'pointer',
+            opacity: isBusy || draft.trim().length === 0 ? 0.5 : 1,
+            flexShrink: 0,
+          }}
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }
@@ -248,8 +341,9 @@ export function IndraWorkspace() {
       budgetBytes={32768}
       onToggleTheme={toggleTheme}
       onOpenLedger={() => setSheetContent('context-ledger')}
+      fullBleed={active === 'work'}
     >
-      {active === 'work' && <WorkPlaceholder />}
+      {active === 'work' && <WorkDestination />}
       {active === 'memory' && <MemoryDestination />}
       {active === 'sources' && <SourcesDestination />}
       {active === 'trace' && <TraceDestination />}

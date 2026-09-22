@@ -4,6 +4,13 @@ import { IndraTopBar, type IndraTopBarProps } from './IndraTopBar';
 
 export interface IndraShellProps extends IndraRailProps, IndraTopBarProps {
   children: ReactNode;
+  /**
+   * Skips main's default padding/78ch-cap/scroll wrapper so children can
+   * manage their own full-height layout and scrolling — for a chat-style
+   * surface (transcript + sticky composer), not the padded document-style
+   * panels every other destination uses.
+   */
+  fullBleed?: boolean;
 }
 
 export function IndraShell({
@@ -15,6 +22,7 @@ export function IndraShell({
   budgetBytes,
   onToggleTheme,
   children,
+  fullBleed = false,
 }: IndraShellProps) {
   return (
     <div
@@ -45,23 +53,31 @@ export function IndraShell({
           onToggleTheme={onToggleTheme}
         />
         <main
-          style={{
-            flex: '1 1 auto',
-            minHeight: 0,
-            overflowY: 'auto',
-            display: 'flex',
-            justifyContent: 'center',
-          }}
+          style={
+            fullBleed
+              ? { flex: '1 1 auto', minHeight: 0, display: 'flex' }
+              : {
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }
+          }
         >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '78ch',
-              padding: 'var(--space-7)',
-            }}
-          >
-            {children}
-          </div>
+          {fullBleed ? (
+            children
+          ) : (
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '78ch',
+                padding: 'var(--space-7)',
+              }}
+            >
+              {children}
+            </div>
+          )}
         </main>
       </div>
     </div>
