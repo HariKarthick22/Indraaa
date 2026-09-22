@@ -1,5 +1,13 @@
 # Building and Running goose with Docker
 
+> **Looking to run the INDRA backend as a one-command service for the desktop
+> app?** See [`docs/DOCKER.md`](docs/DOCKER.md) instead - it covers
+> `docker compose up`, volume mounts for models/workspace/config, and how to
+> point the desktop client at the container. This document is a
+> developer/CI-facing guide for using the image as a generic CLI tool, and
+> still has some pre-INDRA "goose" naming left over from before this project
+> was renamed.
+
 This guide covers building Docker images for goose CLI for production use, CI/CD pipelines, and local development.
 
 ## Quick Start
