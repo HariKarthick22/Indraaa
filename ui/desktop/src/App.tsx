@@ -649,7 +649,10 @@ export function AppInner() {
                 </OnboardingGuard>
               }
             >
-              <Route index element={<HubRouteWrapper draftRef={hubDraftRef} />} />
+              {/* INDRA's shell is the app's landing surface; the legacy hub
+                  stays reachable at /hub while its chat transcript is folded in. */}
+              <Route index element={<IndraWorkspace />} />
+              <Route path="hub" element={<HubRouteWrapper draftRef={hubDraftRef} />} />
               <Route
                 path="pair"
                 element={

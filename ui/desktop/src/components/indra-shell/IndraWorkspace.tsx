@@ -16,6 +16,8 @@ import { Sheet } from './Sheet';
 import { SourcesLibrary, type DocumentSummary, type SourcesView } from './SourcesLibrary';
 import { SovereigntyScreen } from './SovereigntyScreen';
 import { TraceScreen, type TraceRun } from './TraceScreen';
+import { WorkspaceFolders } from './WorkspaceFolders';
+import { useWorkspaceFolders } from '../../indra/workspaceFolders';
 
 const DESTINATION_TITLES: Record<IndraRailDestination, string> = {
   work: 'Work',
@@ -110,18 +112,31 @@ function MemoryDestination() {
 
 function SourcesDestination() {
   const [view, setView] = useState<SourcesView>('list');
+  const { folders, addFolder, removeFolder, setFolderMode } = useWorkspaceFolders();
   // No ACP method yet lists the document corpus — see MemoryDestination.
   const documents: DocumentSummary[] = [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-      <h1 style={panelHeading}>Sources</h1>
-      <SourcesLibrary
-        documents={documents}
-        view={view}
-        onOpen={() => {}}
-        onViewChange={setView}
-      />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-7)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+        <h1 style={panelHeading}>Workspace folders</h1>
+        <WorkspaceFolders
+          folders={folders}
+          onAdd={addFolder}
+          onRemove={removeFolder}
+          onModeChange={setFolderMode}
+        />
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+        <h1 style={panelHeading}>Sources</h1>
+        <SourcesLibrary
+          documents={documents}
+          view={view}
+          onOpen={() => {}}
+          onViewChange={setView}
+        />
+      </div>
     </div>
   );
 }
