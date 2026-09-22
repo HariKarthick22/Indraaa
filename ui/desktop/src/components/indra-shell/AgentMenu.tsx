@@ -1,37 +1,58 @@
 import { useMemo } from 'react';
-import type { SkillCommand } from '../../indra/skills';
 import { fuzzyMatch } from '../../indra/paletteIndex';
 
-export interface SlashMenuProps {
-  /** Text typed after `/` in the composer, e.g. `pid` for `/pid-trace`. */
+export interface AgentCommand {
+  name: string;
+  description: string;
+}
+
+export interface AgentMenuProps {
+  /** Text typed after `//` in the composer, e.g. `rust` for `rust-systems-engineer`. */
   query: string;
-  commands: readonly SkillCommand[];
-  onPick: (command: SkillCommand) => void;
+  agents: readonly AgentCommand[];
+  onPick: (agent: AgentCommand) => void;
   /**
-   * Index into the filtered list a caller's Up/Down keys have highlighted
-   * (e.g. IndraComposer.tsx). -1, the default, highlights nothing - so
-   * callers that don't drive keyboard nav see no change in behaviour.
+   * Index into the filtered list the composer's Up/Down keys have
+   * highlighted. -1 (the default) highlights nothing.
    */
   highlightedIndex?: number;
 }
 
+// A diamond with a centered node, not the padlock/pencil/folder shapes this
+// design system already uses elsewhere (WorkspaceFolders.tsx) - distinct
+// silhouette, not just a distinct colour, so it reads as "agent" at a glance.
+const AGENT_GLYPH = (
+  <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+    <path
+      d="M6 1.2 10.5 6 6 10.8 1.5 6Z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.1"
+      strokeLinejoin="round"
+    />
+    <circle cx="6" cy="6" r="1.3" fill="currentColor" />
+  </svg>
+);
+
 /**
- * Filtered `/` menu over the installed skills already surfaced by
- * `useSkillCommands`. Matching is name-first via the same fuzzy pass the
- * command palette uses, so `/pid` finds `pid-trace` ahead of any skill whose
- * description merely mentions "pid".
+ * Filtered `//` menu over the agents/subagents a turn can be handed to.
+ * Modeled closely on SlashMenu.tsx - same fuzzy-filter pass (`fuzzyMatch`),
+ * same listbox/option shape, same empty state - but kept as its own
+ * component because its rows need a distinct glyph and an `@name` label
+ * rather than SlashMenu's `/name`, so the two menus are never mistaken for
+ * one another even without relying on colour (spec §8).
  */
-export function SlashMenu({ query, commands, onPick, highlightedIndex = -1 }: SlashMenuProps) {
+export function AgentMenu({ query, agents, onPick, highlightedIndex = -1 }: AgentMenuProps) {
   const matches = useMemo(
-    () => commands.filter((command) => fuzzyMatch(query, command.name) !== null),
-    [commands, query]
+    () => agents.filter((agent) => fuzzyMatch(query, agent.name) !== null),
+    [agents, query]
   );
 
   if (matches.length === 0) {
     return (
       <div
         role="listbox"
-        aria-label="Skill commands"
+        aria-label="Agents"
         style={{
           padding: 'var(--space-4)',
           fontFamily: 'var(--font-ui)',
@@ -40,7 +61,7 @@ export function SlashMenu({ query, commands, onPick, highlightedIndex = -1 }: Sl
           color: 'var(--text-faint)',
         }}
       >
-        {query.trim() ? `No skills match “${query.trim()}”.` : 'No skills installed.'}
+        {query.trim() ? `No agents match “${query.trim()}”.` : 'No agents installed.'}
       </div>
     );
   }
@@ -48,7 +69,7 @@ export function SlashMenu({ query, commands, onPick, highlightedIndex = -1 }: Sl
   return (
     <div
       role="listbox"
-      aria-label="Skill commands"
+      aria-label="Agents"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -61,16 +82,16 @@ export function SlashMenu({ query, commands, onPick, highlightedIndex = -1 }: Sl
         overflowY: 'auto',
       }}
     >
-      {matches.map((command, index) => {
+      {matches.map((agent, index) => {
         const isActive = index === highlightedIndex;
         return (
           <button
-            key={command.name}
-            id={`indra-slash-option-${index}`}
+            key={agent.name}
+            id={`indra-agent-option-${index}`}
             type="button"
             role="option"
             aria-selected={isActive}
-            onClick={() => onPick(command)}
+            onClick={() => onPick(agent)}
             className="indra-focusable"
             style={{
               display: 'flex',
@@ -93,6 +114,12 @@ export function SlashMenu({ query, commands, onPick, highlightedIndex = -1 }: Sl
             }}
           >
             <span
+              aria-hidden="true"
+              style={{ flexShrink: 0, display: 'inline-flex', color: 'var(--text-dim)' }}
+            >
+              {AGENT_GLYPH}
+            </span>
+            <span
               style={{
                 flexShrink: 0,
                 fontFamily: 'var(--font-mono)',
@@ -102,7 +129,7 @@ export function SlashMenu({ query, commands, onPick, highlightedIndex = -1 }: Sl
                 color: 'var(--text-hi)',
               }}
             >
-              {`/${command.name}`}
+              {`@${agent.name}`}
             </span>
             <span
               style={{
@@ -116,7 +143,7 @@ export function SlashMenu({ query, commands, onPick, highlightedIndex = -1 }: Sl
                 color: 'var(--text-dim)',
               }}
             >
-              {command.description}
+              {agent.description}
             </span>
           </button>
         );
