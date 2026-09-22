@@ -96,3 +96,11 @@ sessions/
 # Generated files
 ui/desktop/openapi.json
 ui/desktop/src/api/
+
+# Claude Code session/agent state - not needed to build the Rust backend
+.claude/
+
+# Top-level media/docs not referenced by any crate's include_str!/include_bytes!
+# (verified: no crate embeds files outside its own crates/ subtree)
+*.mp4
+/*.png

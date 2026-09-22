@@ -1,0 +1,80 @@
+# One-command way to run the INDRA backend (the `indra serve` ACP server) in
+# a container. See docs/DOCKER.md for the full production-team guide,
+# including how to point the desktop client at this container.
+#
+# Quick start:
+#   1. cp .env.docker.example .env   (or otherwise set INDRA_SERVER_SECRET_KEY)
+#   2. docker compose up --build
+#
+# This was authored by reading the source (crates/indra-cli/src/cli.rs's
+# `serve` command, crates/indra/src/config/paths.rs, and
+# ui/desktop/src/main.ts's external-backend handling) - it has not been
+# exercised against a running Docker daemon. Validate the first run and
+# adjust before relying on it.
+
+services:
+  indra:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: indra-backend:local
+    container_name: indra-backend
+    restart: unless-stopped
+
+    # `indra serve` starts the ACP server over HTTP + WebSocket (see
+    # crates/indra-cli/src/cli.rs). --platform desktop matches what the
+    # Electron app itself passes when it spawns its own local backend
+    # (ui/desktop/src/indraServe.ts), so this container behaves the same way
+    # a locally-spawned backend would. --host 0.0.0.0 is required so the
+    # published port is reachable from outside the container; the CLI
+    # defaults to 127.0.0.1, which would be unreachable.
+    command:
+      - serve
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "3284"
+      - --platform
+      - desktop
+      - --enable-scheduler
+
+    environment:
+      # Required. Same value must be set on the desktop client as
+      # INDRA_SERVER__SECRET_KEY (see docs/DOCKER.md). `indra serve` refuses
+      # to start without this unless --dangerously-unauthenticated is passed,
+      # which this compose file deliberately does not do.
+      GOOSE_SERVER__SECRET_KEY: "${INDRA_SERVER_SECRET_KEY:?Set INDRA_SERVER_SECRET_KEY in .env before running docker compose up - see docs/DOCKER.md}"
+
+      # Consolidates config/data/state/.agents under one directory so a
+      # single volume mount persists everything (see
+      # crates/indra/src/config/paths.rs Paths::path_root()).
+      GOOSE_PATH_ROOT: /data
+
+      # Root for the Hugging Face hub cache that indra-local-inference's
+      # model downloader/scanner uses (crates/indra-local-inference/src/hf_models.rs).
+      # Pointing this at the mounted /models volume means downloaded GGUF
+      # models persist across `docker compose down`/`up` instead of
+      # re-downloading into the container's throwaway filesystem.
+      HF_HOME: /models
+
+      # Extra read-only directories the agent may access, beyond whatever
+      # working directory a session's client supplies (see
+      # crates/indra/src/source_roots.rs and cli.rs's `ADDITIONAL_AGENT_SOURCE_ROOTS`
+      # handling). This must be a path *inside the container* - it is the
+      # mount target below, not a host path. See docs/DOCKER.md's "workspace
+      # folders" section for why this matters.
+      ADDITIONAL_AGENT_SOURCE_ROOTS: /workspace
+
+    ports:
+      - "${INDRA_HOST_PORT:-3284}:3284"
+
+    volumes:
+      # Persistent config/session/agent state (GOOSE_PATH_ROOT above).
+      - "${INDRA_DATA_DIR:-./indra-data}:/data"
+      # Local GGUF/HF model cache (HF_HOME above). Pre-populate this with an
+      # existing ~/.cache/huggingface to avoid re-downloading models.
+      - "${INDRA_MODELS_DIR:-./indra-models}:/models"
+      # Workspace folder(s) the agent is granted access to. Bind-mount
+      # whatever host directory the agent should read/write; its
+      # in-container path must match ADDITIONAL_AGENT_SOURCE_ROOTS above.
+      - "${INDRA_WORKSPACE_DIR:-./indra-workspace}:/workspace"
