@@ -18,4 +18,18 @@ describe('SlashMenu', () => {
     render(<SlashMenu query="" commands={commands} onPick={vi.fn()} />);
     expect(screen.getByText('Review an NDT report against allowables')).toBeInTheDocument();
   });
+
+  it('marks the row at highlightedIndex as selected and leaves the rest unselected', () => {
+    render(<SlashMenu query="" commands={commands} onPick={vi.fn()} highlightedIndex={1} />);
+    const options = screen.getAllByRole('option');
+    expect(options[0]).toHaveAttribute('aria-selected', 'false');
+    expect(options[1]).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('defaults to no row highlighted', () => {
+    render(<SlashMenu query="" commands={commands} onPick={vi.fn()} />);
+    for (const option of screen.getAllByRole('option')) {
+      expect(option).toHaveAttribute('aria-selected', 'false');
+    }
+  });
 });
