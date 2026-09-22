@@ -908,4 +908,12 @@ impl GooseAcpAgent {
     ) -> Result<EgressProbeResponse, agent_client_protocol::Error> {
         self.on_egress_probe(req).await
     }
+
+    #[custom_method(ListSpecialistsRequest)]
+    async fn dispatch_specialists_list(
+        &self,
+        req: ListSpecialistsRequest,
+    ) -> Result<ListSpecialistsResponse, agent_client_protocol::Error> {
+        self.on_specialists_list(req).await
+    }
 }

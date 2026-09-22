@@ -5,7 +5,7 @@ import { useChatSession } from '../../hooks/useChatSession';
 import { ChatState } from '../../types/chatState';
 import { DEFAULT_THEME, applyTheme, type Theme } from '../../indra/theme';
 import { buildPaletteIndex, type PaletteEntry } from '../../indra/paletteIndex';
-import { skillCommandsToPaletteEntries, useSkillCommands } from '../../indra/skills';
+import { skillCommandsToPaletteEntries, useAgentCommands, useSkillCommands } from '../../indra/skills';
 import { useKeymap } from '../../indra/useKeymap';
 import { useTranscriptTurns } from '../../indra/useTranscriptTurns';
 import { isSealed, useEgressStatus } from '../../indra/useEgressStatus';
@@ -32,6 +32,7 @@ import { useWorkspaceFolders } from '../../indra/workspaceFolders';
 
 const DESTINATION_TITLES: Record<IndraRailDestination, string> = {
   work: 'Work',
+  models: 'Models',
   memory: 'Memory',
   sources: 'Sources',
   trace: 'Trace',
@@ -39,7 +40,8 @@ const DESTINATION_TITLES: Record<IndraRailDestination, string> = {
 };
 
 type MemoryView = 'ledger' | 'constellation' | 'timeline';
-type SheetContent = 'appearance' | 'context-ledger' | 'mcp' | 'models' | null;
+type ModelsView = 'models' | 'connectors';
+type SheetContent = 'appearance' | 'context-ledger' | null;
 
 const panelHeading: CSSProperties = {
   fontSize: 'var(--t-20)',
@@ -99,6 +101,7 @@ function WorkDestination() {
   const isBusy = chatState === ChatState.Thinking || chatState === ChatState.Streaming;
 
   const skillCommands = useSkillCommands();
+  const agentCommands = useAgentCommands();
   const { folders, scope } = useWorkspaceFolders();
   const workspaceLabel =
     scope === 'full' ? 'Full access' : folders.length === 0 ? 'No folders granted' : `${folders.length} folder${folders.length === 1 ? '' : 's'}`;
@@ -124,7 +127,7 @@ function WorkDestination() {
           onChange={setDraft}
           onSubmit={submit}
           skills={skillCommands}
-          agents={[]}
+          agents={agentCommands}
           modelName={lastModelName(turns)}
           workspaceLabel={workspaceLabel}
           permissionMode={permissionMode}
@@ -249,28 +252,49 @@ function SovereigntyDestination() {
   );
 }
 
-function McpConnectorsSheet() {
-  const { servers, addServer, removeServer, toggleServer } = useMcpConnectors();
-  return (
-    <McpConnectors
-      servers={servers}
-      onAdd={addServer}
-      onRemove={removeServer}
-      onToggle={toggleServer}
-    />
-  );
-}
-
-function ModelInstallSheet() {
+function ModelsDestination() {
+  const [view, setView] = useState<ModelsView>('models');
   const { models, install, cancel, remove, dismiss } = useLocalModels();
+  const { servers, addServer, removeServer, toggleServer } = useMcpConnectors();
+
   return (
-    <ModelInstall
-      models={models}
-      onInstall={install}
-      onCancel={cancel}
-      onDelete={remove}
-      onDismiss={dismiss}
-    />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', height: '100%' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h1 style={panelHeading}>Models</h1>
+        <div style={segmentRow} role="tablist" aria-label="Models view">
+          {(['models', 'connectors'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={view === v}
+              className="indra-focusable"
+              style={segmentButton(view === v)}
+              onClick={() => setView(v)}
+            >
+              {v === 'models' ? 'Models' : 'MCP connectors'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {view === 'models' ? (
+        <ModelInstall
+          models={models}
+          onInstall={install}
+          onCancel={cancel}
+          onDelete={remove}
+          onDismiss={dismiss}
+        />
+      ) : (
+        <McpConnectors
+          servers={servers}
+          onAdd={addServer}
+          onRemove={removeServer}
+          onToggle={toggleServer}
+        />
+      )}
+    </div>
   );
 }
 
@@ -297,20 +321,6 @@ export function IndraWorkspace() {
         go: () => setActive(id),
       })),
       themes: [{ id: 'appearance', label: 'Appearance', apply: () => setSheetContent('appearance') }],
-      scopes: [
-        {
-          id: 'mcp',
-          label: 'MCP connectors',
-          hint: 'Manage connected MCP servers',
-          apply: () => setSheetContent('mcp'),
-        },
-        {
-          id: 'models',
-          label: 'Install models',
-          hint: 'Download or manage local models',
-          apply: () => setSheetContent('models'),
-        },
-      ],
     });
     const skillEntries = skillCommandsToPaletteEntries(skillCommands, () => {});
     return [...destinationEntries, ...skillEntries];
@@ -348,6 +358,7 @@ export function IndraWorkspace() {
     >
       {active === 'work' && <WorkDestination />}
       {active === 'memory' && <MemoryDestination />}
+      {active === 'models' && <ModelsDestination />}
       {active === 'sources' && <SourcesDestination />}
       {active === 'trace' && <TraceDestination />}
       {active === 'sovereignty' && <SovereigntyDestination />}
@@ -361,24 +372,6 @@ export function IndraWorkspace() {
         onClose={() => setSheetContent(null)}
       >
         <AppearancePanel theme={theme} onChange={setTheme} />
-      </Sheet>
-
-      <Sheet
-        open={sheetContent === 'mcp'}
-        width={520}
-        title="MCP connectors"
-        onClose={() => setSheetContent(null)}
-      >
-        {sheetContent === 'mcp' ? <McpConnectorsSheet /> : null}
-      </Sheet>
-
-      <Sheet
-        open={sheetContent === 'models'}
-        width={520}
-        title="Models"
-        onClose={() => setSheetContent(null)}
-      >
-        {sheetContent === 'models' ? <ModelInstallSheet /> : null}
       </Sheet>
 
       <Sheet

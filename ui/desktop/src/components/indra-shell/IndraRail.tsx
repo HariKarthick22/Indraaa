@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react';
 
-export type IndraRailDestination = 'work' | 'memory' | 'sources' | 'trace' | 'sovereignty';
+export type IndraRailDestination =
+  | 'work'
+  | 'models'
+  | 'sources'
+  | 'memory'
+  | 'trace'
+  | 'sovereignty';
 
 export interface IndraRailProps {
   active: IndraRailDestination;
@@ -14,7 +20,9 @@ interface RailItem {
 }
 
 // Simple inline SVG placeholders — one distinct shape per destination.
-// Real icon art is a separate design task.
+// Real icon art is a separate design task. Order is priority order: the
+// conversation surface first, then what you need before you can use it
+// (models), then everything else.
 const RAIL_ITEMS: RailItem[] = [
   {
     id: 'work',
@@ -26,11 +34,19 @@ const RAIL_ITEMS: RailItem[] = [
     ),
   },
   {
-    id: 'memory',
-    label: 'Memory',
+    id: 'models',
+    label: 'Models',
     icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-        <rect x="3" y="3" width="10" height="10" fill="currentColor" />
+        <circle cx="8" cy="8" r="2.4" fill="currentColor" />
+        <circle cx="8" cy="2.5" r="1.4" fill="currentColor" />
+        <circle cx="13" cy="11.5" r="1.4" fill="currentColor" />
+        <circle cx="3" cy="11.5" r="1.4" fill="currentColor" />
+        <path
+          d="M8 4.5 L8 6 M11 10 L9.5 9 M5 10 L6.5 9"
+          stroke="currentColor"
+          strokeWidth="1.2"
+        />
       </svg>
     ),
   },
@@ -40,6 +56,15 @@ const RAIL_ITEMS: RailItem[] = [
     icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
         <polygon points="8,2 14,8 8,14 2,8" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    id: 'memory',
+    label: 'Memory',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="3" y="3" width="10" height="10" fill="currentColor" />
       </svg>
     ),
   },
@@ -75,7 +100,7 @@ export function IndraRail({ active, onSelect }: IndraRailProps) {
     <nav
       aria-label="Primary"
       style={{
-        width: 48,
+        width: 76,
         flexShrink: 0,
         height: '100%',
         display: 'flex',
@@ -113,10 +138,12 @@ export function IndraRail({ active, onSelect }: IndraRailProps) {
                 }
                 style={{
                   width: '100%',
-                  height: 48,
+                  height: 52,
                   display: 'flex',
+                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: 'var(--space-1)',
                   background: 'transparent',
                   border: 'none',
                   borderLeftWidth: '2px',
@@ -128,6 +155,17 @@ export function IndraRail({ active, onSelect }: IndraRailProps) {
                 }}
               >
                 {item.icon}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    fontFamily: 'var(--font-ui)',
+                    fontSize: 'var(--t-11)',
+                    lineHeight: 'var(--t-11--line-height)',
+                    fontWeight: isActive ? 500 : 400,
+                  }}
+                >
+                  {item.label}
+                </span>
               </button>
             </li>
           );

@@ -2420,6 +2420,30 @@ pub struct GetWorkspaceFoldersResponse {
     pub folders: Vec<WorkspaceFolderDto>,
 }
 
+/// One entry from the agent-loop's specialist registry
+/// (`crates/indra/src/agents/specialists/registry.rs`), surfaced to the
+/// client for the `//` agent picker.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct SpecialistInfo {
+    pub name: String,
+    pub description: String,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcRequest)]
+#[request(
+    method = "_goose/unstable/specialists/list",
+    response = ListSpecialistsResponse
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ListSpecialistsRequest {}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, JsonSchema, JsonRpcResponse)]
+#[serde(rename_all = "camelCase")]
+pub struct ListSpecialistsResponse {
+    pub specialists: Vec<SpecialistInfo>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

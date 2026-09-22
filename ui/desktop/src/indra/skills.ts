@@ -51,6 +51,58 @@ export function useSkillCommands(): SkillCommand[] {
   return commands;
 }
 
+interface SpecialistInfoDto {
+  name: string;
+  description: string;
+}
+
+interface ListSpecialistsResponseDto {
+  specialists: SpecialistInfoDto[];
+}
+
+const SPECIALISTS_LIST_METHOD = '_goose/unstable/specialists/list';
+
+/**
+ * The agent loop's real specialist registry
+ * (crates/indra/src/agents/specialists/registry.rs), surfaced as `//`
+ * agent-picker entries. Called through `ClientContext.request`'s generic
+ * overload rather than a generated wrapper - see `acp/sovereignty.ts` for
+ * why (this environment's codegen step needs a Rust build + `just`
+ * generate-acp-types that isn't runnable here); swap to the generated
+ * `client.goose.specialistsList_unstable` once that's been regenerated.
+ */
+export function useAgentCommands(): SkillCommand[] {
+  const [commands, setCommands] = useState<SkillCommand[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getAcpClient()
+      .then((client) =>
+        client.connection.agent.request<ListSpecialistsResponseDto>(SPECIALISTS_LIST_METHOD, {})
+      )
+      .then((response) => {
+        if (cancelled) return;
+        setCommands(
+          response.specialists.map((specialist) => ({
+            name: specialist.name,
+            description: specialist.description,
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error('Failed to fetch specialists:', error);
+        if (!cancelled) setCommands([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return commands;
+}
+
 /**
  * Each skill command is also a peer entry in the ⌘K palette (kind: 'skill'),
  * matching the id/label shape `buildPaletteIndex` already uses for
