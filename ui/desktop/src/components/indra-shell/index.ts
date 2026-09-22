@@ -58,7 +58,32 @@ export type { AppearancePanelProps } from './AppearancePanel';
 export { LockOverlay } from './LockOverlay';
 export type { LockOverlayProps } from './LockOverlay';
 export { WorkspaceFolders } from './WorkspaceFolders';
-export type { WorkspaceFolderMode, WorkspaceFolderEntry, WorkspaceFoldersProps } from './WorkspaceFolders';
+export type {
+  WorkspaceFolderMode,
+  WorkspaceFolderEntry,
+  WorkspaceFoldersProps,
+  WorkspaceScopeMode,
+} from './WorkspaceFolders';
+export { IndraComposer } from './IndraComposer';
+export type { PermissionMode, IndraComposerProps } from './IndraComposer';
+export { AgentMenu } from './AgentMenu';
+export type { AgentCommand, AgentMenuProps } from './AgentMenu';
+export { IndraTranscript } from './IndraTranscript';
+export type { TranscriptTurn, IndraTranscriptProps } from './IndraTranscript';
+export { McpConnectors } from './McpConnectors';
+export type {
+  McpTransport,
+  McpConnectionState,
+  McpServerRow,
+  NewMcpServerInput,
+  McpConnectorsProps,
+} from './McpConnectors';
+export { ModelInstall } from './ModelInstall';
+export type {
+  ModelDownloadProgress,
+  ModelInstallRow,
+  ModelInstallProps,
+} from './ModelInstall';
 export { TraceScreen, planFromEvents, toolCallsFromEvents } from './TraceScreen';
 export type { TraceScreenProps, TraceRun, TracedToolCall } from './TraceScreen';
 export { ApprovalsQueue } from './ApprovalsQueue';
