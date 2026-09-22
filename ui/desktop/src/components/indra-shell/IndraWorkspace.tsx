@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { acpEgressProbe, acpEgressStatus, type EgressAttempt } from '../../acp/sovereignty';
 import { useChatContext } from '../../contexts/ChatContext';
 import { useChatSession } from '../../hooks/useChatSession';
@@ -12,11 +12,16 @@ import { AppearancePanel } from './AppearancePanel';
 import { CommandPalette } from './CommandPalette';
 import { ContextLedger } from './ContextLedger';
 import { Constellation } from './Constellation';
+import { IndraComposer, type PermissionMode } from './IndraComposer';
 import { IndraShell } from './IndraShell';
-import { IndraTranscript } from './IndraTranscript';
+import { IndraTranscript, type TranscriptTurn } from './IndraTranscript';
 import type { IndraRailDestination } from './IndraRail';
+import { McpConnectors } from './McpConnectors';
+import { useMcpConnectors } from '../../indra/useMcpConnectors';
 import { MemoryLedger, type MemoryNode } from './MemoryLedger';
 import { MemoryTimeline } from './MemoryTimeline';
+import { ModelInstall } from './ModelInstall';
+import { useLocalModels } from '../../indra/useLocalModels';
 import { Sheet } from './Sheet';
 import { SourcesLibrary, type DocumentSummary, type SourcesView } from './SourcesLibrary';
 import { SovereigntyScreen } from './SovereigntyScreen';
@@ -33,7 +38,7 @@ const DESTINATION_TITLES: Record<IndraRailDestination, string> = {
 };
 
 type MemoryView = 'ledger' | 'constellation' | 'timeline';
-type SheetContent = 'appearance' | 'context-ledger' | null;
+type SheetContent = 'appearance' | 'context-ledger' | 'mcp' | 'models' | null;
 
 const panelHeading: CSSProperties = {
   fontSize: 'var(--t-20)',
@@ -62,19 +67,6 @@ function segmentButton(active: boolean): CSSProperties {
   };
 }
 
-const composerBar: CSSProperties = {
-  display: 'flex',
-  alignItems: 'flex-end',
-  gap: 'var(--space-3)',
-  width: '100%',
-  maxWidth: '78ch',
-  margin: '0 auto',
-  padding: 'var(--space-4)',
-  background: 'var(--surface)',
-  border: '1px solid var(--line-strong)',
-  borderRadius: 'var(--r-lg)',
-};
-
 /**
  * Backed by the same session state the legacy hub uses (`useChatContext` +
  * `useChatSession`), so sending a message here creates/continues a real
@@ -82,11 +74,21 @@ const composerBar: CSSProperties = {
  * backend's one-event-per-message stream into the turns IndraTranscript
  * expects.
  */
+function lastModelName(turns: TranscriptTurn[]): string | undefined {
+  for (let i = turns.length - 1; i >= 0; i--) {
+    for (let j = turns[i].events.length - 1; j >= 0; j--) {
+      const event = turns[i].events[j];
+      if (event.t === 'model.selected') return event.model_id;
+    }
+  }
+  return undefined;
+}
+
 function WorkDestination() {
   const chatContext = useChatContext();
   const sessionId = chatContext?.chat.sessionId ?? '';
   const [draft, setDraft] = useState('');
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [permissionMode, setPermissionMode] = useState<PermissionMode>('manual');
 
   const { messages, chatState, handleSubmit } = useChatSession({
     sessionId,
@@ -95,69 +97,39 @@ function WorkDestination() {
   const turns = useTranscriptTurns(messages, chatState);
   const isBusy = chatState === ChatState.Thinking || chatState === ChatState.Streaming;
 
-  const submit = useCallback(() => {
-    const text = draft.trim();
-    if (!text || isBusy) return;
-    setDraft('');
-    void handleSubmit({ msg: text, images: [] });
-  }, [draft, isBusy, handleSubmit]);
+  const skillCommands = useSkillCommands();
+  const { folders, scope } = useWorkspaceFolders();
+  const workspaceLabel =
+    scope === 'full' ? 'Full access' : folders.length === 0 ? 'No folders granted' : `${folders.length} folder${folders.length === 1 ? '' : 's'}`;
+
+  const submit = useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isBusy) return;
+      setDraft('');
+      void handleSubmit({ msg: trimmed, images: [] });
+    },
+    [isBusy, handleSubmit]
+  );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, gap: 'var(--space-4)' }}>
       <div style={{ flex: '1 1 auto', minHeight: 0 }}>
         <IndraTranscript turns={turns} />
       </div>
-      <div style={composerBar}>
-        <textarea
-          ref={textareaRef}
-          className="indra-focusable"
+      <div style={{ width: '100%', maxWidth: '78ch', margin: '0 auto' }}>
+        <IndraComposer
           value={draft}
+          onChange={setDraft}
+          onSubmit={submit}
+          skills={skillCommands}
+          agents={[]}
+          modelName={lastModelName(turns)}
+          workspaceLabel={workspaceLabel}
+          permissionMode={permissionMode}
+          onPermissionModeChange={setPermissionMode}
           disabled={isBusy}
-          placeholder={isBusy ? 'INDRA is working…' : 'Ask INDRA anything'}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault();
-              submit();
-            }
-          }}
-          rows={1}
-          style={{
-            flex: '1 1 auto',
-            resize: 'none',
-            background: 'transparent',
-            border: 'none',
-            outline: 'none',
-            color: 'var(--text-hi)',
-            caretColor: 'var(--focus)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: 'var(--t-14)',
-            lineHeight: 'var(--t-14--line-height)',
-            maxHeight: '10em',
-          }}
         />
-        <button
-          type="button"
-          className="indra-focusable"
-          disabled={isBusy || draft.trim().length === 0}
-          onClick={submit}
-          style={{
-            height: 32,
-            padding: '0 var(--space-5)',
-            background: 'var(--raised)',
-            border: '1px solid var(--line-strong)',
-            borderRadius: 'var(--r-sm)',
-            color: 'var(--text-hi)',
-            fontFamily: 'var(--font-ui)',
-            fontSize: 'var(--t-12)',
-            fontWeight: 500,
-            cursor: isBusy ? 'default' : 'pointer',
-            opacity: isBusy || draft.trim().length === 0 ? 0.5 : 1,
-            flexShrink: 0,
-          }}
-        >
-          Send
-        </button>
       </div>
     </div>
   );
@@ -251,6 +223,8 @@ function TraceDestination() {
 function SovereigntyDestination() {
   const [attempts, setAttempts] = useState<EgressAttempt[]>([]);
   const [uptimeSeconds, setUptimeSeconds] = useState(0);
+  const { models } = useLocalModels();
+  const modelsLoaded = models.filter((m) => m.installed).length;
 
   const refresh = useCallback(async () => {
     try {
@@ -281,10 +255,35 @@ function SovereigntyDestination() {
       // No ACP method yet reports live sandbox/model-fit counts; the egress
       // log above is the part of this screen the backend actually drives.
       sandboxBackend="sandboxed"
-      modelsLoaded={0}
+      modelsLoaded={modelsLoaded}
       degradedCount={0}
       sealedCount={0}
       onProbe={handleProbe}
+    />
+  );
+}
+
+function McpConnectorsSheet() {
+  const { servers, addServer, removeServer, toggleServer } = useMcpConnectors();
+  return (
+    <McpConnectors
+      servers={servers}
+      onAdd={addServer}
+      onRemove={removeServer}
+      onToggle={toggleServer}
+    />
+  );
+}
+
+function ModelInstallSheet() {
+  const { models, install, cancel, remove, dismiss } = useLocalModels();
+  return (
+    <ModelInstall
+      models={models}
+      onInstall={install}
+      onCancel={cancel}
+      onDelete={remove}
+      onDismiss={dismiss}
     />
   );
 }
@@ -310,6 +309,20 @@ export function IndraWorkspace() {
         go: () => setActive(id),
       })),
       themes: [{ id: 'appearance', label: 'Appearance', apply: () => setSheetContent('appearance') }],
+      scopes: [
+        {
+          id: 'mcp',
+          label: 'MCP connectors',
+          hint: 'Manage connected MCP servers',
+          apply: () => setSheetContent('mcp'),
+        },
+        {
+          id: 'models',
+          label: 'Install models',
+          hint: 'Download or manage local models',
+          apply: () => setSheetContent('models'),
+        },
+      ],
     });
     const skillEntries = skillCommandsToPaletteEntries(skillCommands, () => {});
     return [...destinationEntries, ...skillEntries];
@@ -358,6 +371,24 @@ export function IndraWorkspace() {
         onClose={() => setSheetContent(null)}
       >
         <AppearancePanel theme={theme} onChange={setTheme} />
+      </Sheet>
+
+      <Sheet
+        open={sheetContent === 'mcp'}
+        width={520}
+        title="MCP connectors"
+        onClose={() => setSheetContent(null)}
+      >
+        {sheetContent === 'mcp' ? <McpConnectorsSheet /> : null}
+      </Sheet>
+
+      <Sheet
+        open={sheetContent === 'models'}
+        width={520}
+        title="Models"
+        onClose={() => setSheetContent(null)}
+      >
+        {sheetContent === 'models' ? <ModelInstallSheet /> : null}
       </Sheet>
 
       <Sheet
