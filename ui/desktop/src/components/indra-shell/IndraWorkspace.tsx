@@ -112,7 +112,7 @@ function MemoryDestination() {
 
 function SourcesDestination() {
   const [view, setView] = useState<SourcesView>('list');
-  const { folders, addFolder, removeFolder, setFolderMode } = useWorkspaceFolders();
+  const { folders, scope, addFolder, removeFolder, setFolderMode, setScope } = useWorkspaceFolders();
   // No ACP method yet lists the document corpus — see MemoryDestination.
   const documents: DocumentSummary[] = [];
 
@@ -122,9 +122,11 @@ function SourcesDestination() {
         <h1 style={panelHeading}>Workspace folders</h1>
         <WorkspaceFolders
           folders={folders}
+          scope={scope}
           onAdd={addFolder}
           onRemove={removeFolder}
           onModeChange={setFolderMode}
+          onScopeChange={setScope}
         />
       </div>
 

@@ -9,6 +9,14 @@ import {
 
 export type WorkspaceFolderMode = 'read-only' | 'controlled';
 
+/**
+ * Top-level filesystem access mode. `selected` is the safe default: the
+ * agent is confined to the explicit folder list below. `full` lifts that
+ * confinement entirely - the agent may reach the whole machine - and is
+ * never the default; the user opts into it explicitly.
+ */
+export type WorkspaceScopeMode = 'selected' | 'full';
+
 export interface WorkspaceFolderEntry {
   path: string;
   mode: WorkspaceFolderMode;
@@ -16,9 +24,11 @@ export interface WorkspaceFolderEntry {
 
 export interface WorkspaceFoldersProps {
   folders: WorkspaceFolderEntry[];
+  scope: WorkspaceScopeMode;
   onAdd: (path: string) => void;
   onRemove: (path: string) => void;
   onModeChange: (path: string, mode: WorkspaceFolderMode) => void;
+  onScopeChange: (scope: WorkspaceScopeMode) => void;
 }
 
 /**
@@ -123,6 +133,189 @@ function ModeToggleButton({ mode, pressed, onPress }: ModeToggleButtonProps) {
       {MODE_GLYPH[mode]}
       {MODE_LABEL[mode]}
     </button>
+  );
+}
+
+const SCOPE_LABEL: Record<WorkspaceScopeMode, string> = {
+  selected: 'Selected folders',
+  full: 'Full access',
+};
+
+const SELECTED_SCOPE_GLYPH = (
+  <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+    <path
+      d="M1.5 3.4h3.1l1 1.1h5v5.6h-9.1Z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.1"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+/** An open ring with a break, deliberately unlike the closed folder above - shape signals "no boundary", not only colour. */
+const FULL_ACCESS_SCOPE_GLYPH = (
+  <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+    <path
+      d="M6 1.6a4.4 4.4 0 1 1-3.1 1.3"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.1"
+      strokeLinecap="round"
+    />
+    <path d="M6 1.6v2.6M6 1.6H3.6" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+  </svg>
+);
+
+const SCOPE_GLYPH: Record<WorkspaceScopeMode, ReactNode> = {
+  selected: SELECTED_SCOPE_GLYPH,
+  full: FULL_ACCESS_SCOPE_GLYPH,
+};
+
+/**
+ * Signal colour per the achromatic rule (spec 3.2/8): sealed green for the
+ * confined, safe-default scope; blocked red for the scope that removes every
+ * boundary. Colour is always paired with SCOPE_LABEL/SCOPE_GLYPH and the
+ * explicit sentence in SCOPE_DESCRIPTION - never the sole carrier.
+ */
+const SCOPE_COLOR: Record<WorkspaceScopeMode, string> = {
+  selected: 'var(--sealed)',
+  full: 'var(--blocked)',
+};
+
+const SCOPE_DESCRIPTION: Record<WorkspaceScopeMode, string> = {
+  selected:
+    'INDRA can only reach the folders you add below. Each one is governed by its own read-only or controlled mode.',
+  full: 'INDRA can read and write anywhere on this machine, with no folder boundary. This is unrestricted access.',
+};
+
+interface ScopeToggleButtonProps {
+  mode: WorkspaceScopeMode;
+  pressed: boolean;
+  onPress: () => void;
+}
+
+function ScopeToggleButton({ mode, pressed, onPress }: ScopeToggleButtonProps) {
+  const { onFocus, onBlur, ringStyle } = useFocusRing();
+  const color = pressed ? SCOPE_COLOR[mode] : 'var(--text-dim)';
+  return (
+    <button
+      type="button"
+      className="indra-focusable"
+      aria-pressed={pressed}
+      title={SCOPE_DESCRIPTION[mode]}
+      onClick={onPress}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 'var(--space-2)',
+        height: 28,
+        padding: '0 var(--space-5)',
+        background: pressed ? 'var(--raised)' : 'transparent',
+        border: `1px solid ${pressed ? color : 'var(--line-strong)'}`,
+        borderRadius: 'var(--r-sm)',
+        color,
+        fontFamily: 'var(--font-ui)',
+        fontSize: 'var(--t-13)',
+        lineHeight: 'var(--t-13--line-height)',
+        fontWeight: 500,
+        cursor: 'pointer',
+        ...ringStyle,
+      }}
+    >
+      {SCOPE_GLYPH[mode]}
+      {SCOPE_LABEL[mode]}
+    </button>
+  );
+}
+
+/**
+ * The dangerous-option affordance (spec §8): a 2px --blocked left rule, a ▲
+ * glyph, and a plain sentence stating what full access means - never a bare
+ * label, never colour alone. Mirrors the role="alert" pattern used for the
+ * sovereignty probe's failure state (SovereigntyScreen.tsx) and the setup
+ * flow's degraded warning (SetupIdentity.tsx).
+ */
+function FullAccessNotice() {
+  return (
+    <p
+      role="alert"
+      style={{
+        margin: 0,
+        display: 'flex',
+        gap: 'var(--space-3)',
+        borderLeftWidth: '2px',
+        borderLeftStyle: 'solid',
+        borderLeftColor: 'var(--blocked)',
+        paddingLeft: 'var(--space-4)',
+        paddingTop: 'var(--space-2)',
+        paddingBottom: 'var(--space-2)',
+        fontSize: 'var(--t-12)',
+        lineHeight: 'var(--t-12--line-height)',
+        color: 'var(--text)',
+      }}
+    >
+      <span aria-hidden="true" style={{ color: 'var(--blocked)', flexShrink: 0 }}>
+        {'▲'}
+      </span>
+      <span>
+        Full access is on. INDRA can read, write, move, and delete files anywhere on this
+        machine - not just in the folders listed below. The list below has no effect while this
+        is selected.
+      </span>
+    </p>
+  );
+}
+
+function ScopeControl({
+  scope,
+  onScopeChange,
+}: {
+  scope: WorkspaceScopeMode;
+  onScopeChange: (scope: WorkspaceScopeMode) => void;
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+      <span
+        id="workspace-scope-label"
+        style={{
+          color: 'var(--text-dim)',
+          fontSize: 'var(--t-12)',
+          lineHeight: 'var(--t-12--line-height)',
+          fontWeight: 500,
+        }}
+      >
+        Filesystem access
+      </span>
+      <span
+        role="group"
+        aria-labelledby="workspace-scope-label"
+        style={{ display: 'inline-flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}
+      >
+        <ScopeToggleButton
+          mode="selected"
+          pressed={scope === 'selected'}
+          onPress={() => onScopeChange('selected')}
+        />
+        <ScopeToggleButton
+          mode="full"
+          pressed={scope === 'full'}
+          onPress={() => onScopeChange('full')}
+        />
+      </span>
+      <span
+        style={{
+          color: 'var(--text-dim)',
+          fontSize: 'var(--t-12)',
+          lineHeight: 'var(--t-12--line-height)',
+        }}
+      >
+        {SCOPE_DESCRIPTION[scope]}
+      </span>
+      {scope === 'full' ? <FullAccessNotice /> : null}
+    </div>
   );
 }
 
@@ -369,11 +562,14 @@ function summarizeFolders(folders: WorkspaceFolderEntry[]): string {
 
 export function WorkspaceFolders({
   folders,
+  scope,
   onAdd,
   onRemove,
   onModeChange,
+  onScopeChange,
 }: WorkspaceFoldersProps) {
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+  const scopeIsFull = scope === 'full';
 
   return (
     <section
@@ -389,55 +585,88 @@ export function WorkspaceFolders({
         lineHeight: 'var(--t-14--line-height)',
       }}
     >
-      <header
+      <ScopeControl scope={scope} onScopeChange={onScopeChange} />
+
+      <div
+        // The per-folder list is inert while scope is 'full' - dimmed and
+        // labelled below so that fact is legible, not just implied by the
+        // toggle above (spec 8: never make the user infer state from colour
+        // or absence alone).
+        aria-label={
+          scopeIsFull ? 'Selected folders (not currently enforced)' : 'Selected folders'
+        }
         style={{
           display: 'flex',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          gap: 'var(--space-4)',
-          paddingBottom: 'var(--space-3)',
-          borderBottom: '1px solid var(--line)',
+          flexDirection: 'column',
+          gap: 'var(--space-5)',
+          opacity: scopeIsFull ? 0.55 : 1,
+          paddingTop: 'var(--space-2)',
+          borderTop: '1px solid var(--line)',
         }}
       >
-        <span
-          style={{
-            color: 'var(--text-dim)',
-            fontSize: 'var(--t-12)',
-            lineHeight: 'var(--t-12--line-height)',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {folders.length === 0 ? 'No folders added' : summarizeFolders(folders)}
-        </span>
-        <AddFolderControl onAdd={onAdd} />
-      </header>
+        {scopeIsFull ? (
+          <span
+            style={{
+              color: 'var(--text-dim)',
+              fontSize: 'var(--t-12)',
+              lineHeight: 'var(--t-12--line-height)',
+            }}
+          >
+            Not enforced while full access is on - the per-folder modes below do nothing until
+            you switch back to Selected folders.
+          </span>
+        ) : null}
 
-      {folders.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <ul
+        <header
           style={{
-            listStyle: 'none',
-            margin: 0,
-            padding: 0,
             display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--space-2)',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            gap: 'var(--space-4)',
+            paddingBottom: 'var(--space-3)',
+            borderBottom: '1px solid var(--line)',
           }}
         >
-          {folders.map((folder) => (
-            <FolderRow
-              key={folder.path}
-              folder={folder}
-              hovered={hoveredPath === folder.path}
-              onHoverChange={setHoveredPath}
-              onRemove={onRemove}
-              onModeChange={onModeChange}
-            />
-          ))}
-        </ul>
-      )}
+          <span
+            style={{
+              color: 'var(--text-dim)',
+              fontSize: 'var(--t-12)',
+              lineHeight: 'var(--t-12--line-height)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {folders.length === 0 ? 'No folders added' : summarizeFolders(folders)}
+          </span>
+          <AddFolderControl onAdd={onAdd} />
+        </header>
+
+        {folders.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <ul
+            style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+            }}
+          >
+            {folders.map((folder) => (
+              <FolderRow
+                key={folder.path}
+                folder={folder}
+                hovered={hoveredPath === folder.path}
+                onHoverChange={setHoveredPath}
+                onRemove={onRemove}
+                onModeChange={onModeChange}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }

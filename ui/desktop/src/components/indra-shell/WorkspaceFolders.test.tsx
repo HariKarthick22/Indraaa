@@ -12,16 +12,19 @@ function renderFolders(overrides: Partial<React.ComponentProps<typeof WorkspaceF
   const onAdd = vi.fn();
   const onRemove = vi.fn();
   const onModeChange = vi.fn();
+  const onScopeChange = vi.fn();
   const utils = render(
     <WorkspaceFolders
       folders={folders}
+      scope="selected"
       onAdd={onAdd}
       onRemove={onRemove}
       onModeChange={onModeChange}
+      onScopeChange={onScopeChange}
       {...overrides}
     />
   );
-  return { ...utils, onAdd, onRemove, onModeChange };
+  return { ...utils, onAdd, onRemove, onModeChange, onScopeChange };
 }
 
 // window.electron is globally mocked in test/setup.ts without
