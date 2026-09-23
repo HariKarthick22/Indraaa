@@ -1,0 +1,132 @@
+name: Cross-platform dependency check
+
+# Proves DEPENDENCIES.md actually works: each OS gets a clean, isolated
+# runner with nothing preinstalled by us, installs only what DEPENDENCIES.md
+# says to install, and then builds the backend and runs the UI test suite.
+# If this is green, a new contributor on that OS can follow that file and get
+# a working build - which is the claim it makes.
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'DEPENDENCIES.md'
+      - 'crates/**'
+      - 'ui/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - '.github/workflows/cross-platform-deps.yml'
+  pull_request:
+    paths:
+      - 'DEPENDENCIES.md'
+      - 'crates/**'
+      - 'ui/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rust-toolchain.toml'
+      - '.github/workflows/cross-platform-deps.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deps:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: Linux
+          - os: macos-latest
+            name: macOS
+          - os: windows-latest
+            name: Windows
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Native toolchain, per DEPENDENCIES.md -------------------------
+      # Windows and macOS runners already ship the C/C++ toolchain and CMake
+      # (MSVC + Windows SDK; Xcode CLT + Homebrew cmake), so only Linux needs
+      # an explicit install. Keep this list in sync with DEPENDENCIES.md.
+      - name: Install native toolchain (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libclang-dev
+
+      - name: Verify native toolchain is present
+        shell: bash
+        run: |
+          cmake --version
+          git --version
+
+      # --- Rust, pinned by rust-toolchain.toml ---------------------------
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: deps-${{ matrix.os }}
+
+      # --- Node + pnpm, per DEPENDENCIES.md ------------------------------
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable pnpm via corepack
+        shell: bash
+        run: |
+          corepack enable
+          pnpm --version
+
+      # --- The actual proof ----------------------------------------------
+      # `cargo check` rather than a full release build: it still compiles
+      # every native dependency that makes this hard (aws-lc-sys, ring,
+      # zstd-sys, llama-cpp-sys-2/llama.cpp via CMake), which is what the
+      # per-OS toolchain claim in DEPENDENCIES.md is actually about, without
+      # spending ~an hour per runner on final release codegen and linking.
+      - name: Build backend (all default features, incl. local-inference)
+        shell: bash
+        run: cargo check --locked -p indra-cli --bin indra
+
+      - name: Install UI dependencies
+        shell: bash
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck UI
+        shell: bash
+        working-directory: ui/desktop
+        run: pnpm exec tsc --noEmit
+
+      - name: Test UI
+        shell: bash
+        working-directory: ui/desktop
+        run: pnpm exec vitest run src/components/indra-shell/ src/indra/
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # The container is the one-command path for anyone who does not want
+      # a host toolchain at all (docs/DOCKER.md), so it needs the same
+      # "does it actually build" proof as the native paths above.
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
