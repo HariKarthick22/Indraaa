@@ -7,7 +7,6 @@
 _Open-weight multimodal LLMs for confidential industrial work — nothing leaves your premises_
 
 <p align="center">
-  <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
   <img src="https://img.shields.io/badge/runs-100%25%20local-success" alt="Runs fully local">
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platforms">
 </p>
@@ -116,10 +115,8 @@ over the Model Context Protocol.
 
 ---
 
-Built for [SIH Problem Statement 26117](https://www.sih.gov.in/) — Sovereign
-On-Premise Agentic AI Workbench using Open-Weight Multimodal LLMs for
-Confidential Industrial Work, Mangalore Refinery and Petrochemicals Limited
-(MRPL).
+Built for SIH Problem Statement 26117 — Sovereign On-Premise Agentic AI
+Workbench using Open-Weight Multimodal LLMs for Confidential Industrial Work,
+Mangalore Refinery and Petrochemicals Limited (MRPL).
 
-INDRA is a fork of [goose](https://github.com/block/goose), rebuilt for
-air-gapped industrial deployment. Licensed under Apache 2.0.
+<sub>Derived from the goose project. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).</sub>
