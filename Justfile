@@ -38,9 +38,16 @@ release-intel:
     cargo build --release --target x86_64-apple-darwin
     @just copy-binary-intel
 
+# Stages the built binary next to the desktop app. Handles the `.exe`
+# suffix so this works on Windows too, not just macOS/Linux - `just run-ui`
+# depends on it, and without this the Windows one-command path stops here.
 copy-binary BUILD_MODE="release":
-    @rm -f ./ui/desktop/src/bin/indra
-    @if [ -f ./target/{{BUILD_MODE}}/indra ]; then \
+    @mkdir -p ./ui/desktop/src/bin
+    @if [ -f ./target/{{BUILD_MODE}}/indra.exe ]; then \
+        echo "Copying indra.exe from target/{{BUILD_MODE}}..."; \
+        rm -f ./ui/desktop/src/bin/indra.exe; \
+        cp -p ./target/{{BUILD_MODE}}/indra.exe ./ui/desktop/src/bin/; \
+    elif [ -f ./target/{{BUILD_MODE}}/indra ]; then \
         echo "Copying indra CLI binary from target/{{BUILD_MODE}}..."; \
         rm -f ./ui/desktop/src/bin/indra; \
         cp -p ./target/{{BUILD_MODE}}/indra ./ui/desktop/src/bin/; \

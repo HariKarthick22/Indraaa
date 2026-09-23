@@ -2,60 +2,124 @@
 
 # INDRA
 
-_your sovereign AI agent workbench — desktop app, CLI, and API — for engineering analysis, local models, and sovereign workflows_
+**Sovereign On-Premise Agentic AI Workbench**
+
+_Open-weight multimodal LLMs for confidential industrial work — nothing leaves your premises_
 
 <p align="center">
-  <a href="https://opensource.org/licenses/Apache-2.0"
-    ><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
-  <a href="https://discord.gg/n8R5VaWDAn"
-    ><img src="https://img.shields.io/discord/1287729918100246654?logo=discord&logoColor=white&label=Join+Us&color=blueviolet" alt="Discord"></a>
-  <a href="https://github.com/aaif-goose/goose/actions/workflows/ci.yml"
-     ><img src="https://img.shields.io/github/actions/workflow/status/aaif-goose/goose/ci.yml?branch=main" alt="CI"></a>
-  <a href="https://insights.linuxfoundation.org/project/goose"><img src="https://insights.linuxfoundation.org/api/badge/health-score?project=goose"></a>
-  <a href="https://repology.org/project/indra-cli/versions"><img src="https://repology.org/badge/tiny-repos/indra-cli.svg" alt="Packaging status"></a>
+  <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/runs-100%25%20local-success" alt="Runs fully local">
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey" alt="Platforms">
 </p>
-
-<a href="https://trendshift.io/repositories/25298?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-25298" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/25298" alt="aaif-goose%2Fgoose | Trendshift" width="250" height="55"/></a>
 
 </div>
 
+## What INDRA is
 
-INDRA is a sovereign AI agent that runs 100% locally on your machine. Specialized for engineering analysis, plant integrity, research, automation, or anything you need to get done.
+Refineries, PSUs, defence-linked manufacturing and government offices produce a
+lot of routine but sensitive knowledge work — approval notes, board decks,
+engineering calculations, internal tooling code, review of scanned drawings and
+inspection reports. None of it can go through a cloud assistant, because the
+underlying material is confidential: P&IDs, financials, vendor negotiations,
+unreleased designs, internal correspondence.
 
-A native desktop app for macOS, Linux, and Windows. A full CLI for terminal workflows. An API to embed it anywhere. Built in Rust for performance and portability.
+So the work gets done by hand, or the confidential material quietly gets pasted
+into a public tool anyway.
 
-INDRA operates with local model providers (Ollama, local embedded inference, and local OpenAI-compatible endpoints). Connect to extensions via the Model Context Protocol open standard.
+INDRA is the third option: a self-hosted, air-gapped AI workbench that runs
+entirely on your own GPU server, and behaves like the assistants people
+actually want to use.
 
-# Get started
+## What it does
 
-**[Download the desktop app](https://goose-docs.ai/docs/getting-started/installation)** for macOS, Linux, and Windows.
+**Runs fully on-premise.** No external calls at any point. Not as a claim — the
+workbench carries a live sovereignty indicator on every screen, backed by a real
+egress log, and ships an interactive probe box so a sceptic can type any URL and
+watch it get blocked and recorded.
 
-Or install the CLI:
+**Picks the right model for the job.** Multiple open-weight models loaded at
+once, selected automatically by what the task actually needs — a coding request
+routed differently from a document summary. New models drop in without
+redesigning anything.
+
+**Acts like an agent, not a chatbot.** Plans multi-step work, calls local tools
+(file read/write, sandboxed code execution, document search), observes results,
+and iterates toward a real deliverable instead of answering once and stopping.
+The plan is visible while it runs, including when it gets revised mid-task.
+
+**Handles more than text.** Scanned PDFs, handwritten notes, engineering
+drawings, P&IDs and photographs, read through on-device OCR and vision models.
+
+**Grounds answers in your own documents.** A local knowledge base over your
+manuals, SOPs and past correspondence — with box-level citations back to the
+source page, so every claim can be checked.
+
+**Produces real files.** Approval notes, Word/Excel/PowerPoint, working code,
+calculations with the steps shown — not just chat replies.
+
+## One-command run
+
+Builds the backend and launches the desktop app together:
 
 ```bash
-curl -fsSL https://github.com/aaif-goose/goose/releases/download/stable/download_cli.sh | bash
+just run-ui
 ```
 
-# Quick links
-- [Quickstart](https://goose-docs.ai/docs/quickstart)
-- [Installation](https://goose-docs.ai/docs/getting-started/installation)
-- [Tutorials](https://goose-docs.ai/docs/category/tutorials)
-- [Documentation](https://goose-docs.ai/docs/category/getting-started)
-- [Governance](https://github.com/aaif-goose/goose/blob/main/GOVERNANCE.md)
-- [Custom Distributions](https://github.com/aaif-goose/goose/blob/main/CUSTOM_DISTROS.md) — build your own goose distro with preconfigured providers, extensions, and branding
+That is the whole thing — backend binary and UI, one command, on Linux, macOS
+and Windows. First run compiles the Rust backend, so give it a few minutes;
+after that it is near-instant.
 
-## Need help?
-- [Diagnostics & Reporting](https://goose-docs.ai/docs/troubleshooting/diagnostics-and-reporting)
-- [Known Issues](https://goose-docs.ai/docs/troubleshooting/known-issues)
+**Prerequisites:** Rust, Node 20+, pnpm, CMake and a C/C++ toolchain.
+[`DEPENDENCIES.md`](DEPENDENCIES.md) lists exactly what to install per platform
+— including the Windows specifics that are easy to get wrong. A CI job installs
+only what that file prescribes on all three OSes and builds from scratch, so it
+stays honest.
 
-# a little goose humor 🪿
+Don't want a host toolchain at all? Run the backend in a container instead:
 
-> Why did the developer choose goose as their AI agent?
-> 
-> Because it always helps them "migrate" their code to production! 🚀
+```bash
+cp .env.docker.example .env    # set a secret
+docker compose up --build
+```
 
-# goose around with us
-- [Discord](https://discord.gg/n8R5VaWDAn)
-- [YouTube](https://www.youtube.com/@goose-oss)
-- [LinkedIn](https://www.linkedin.com/company/goose-oss)
-- [Twitter/X](https://x.com/goose_oss)
+See [`docs/DOCKER.md`](docs/DOCKER.md).
+
+## Using it
+
+The left rail is the whole app: **Work** (the conversation), **Models**,
+**Sources**, **Memory**, **Trace**, **Sovereignty**.
+
+In the composer:
+- `/` — run an installed skill
+- `//` — hand the task to a specialist agent
+- **Auto / Manual** — whether the agent acts on its own or asks before each action
+
+Workspace folders are granted explicitly: pick specific folders (each
+read-only or write-with-approval), or grant full access deliberately. The model
+only ever sees what you've granted.
+
+`⌘K` / `Ctrl+K` opens the command palette, which reaches everything.
+
+## Built on
+
+Rust backend, Electron + React desktop client, and the Agent Client Protocol
+between them. Local inference through llama.cpp, with Ollama and
+OpenAI-compatible local endpoints also supported. Tools and integrations attach
+over the Model Context Protocol.
+
+## Project docs
+
+- [`DEPENDENCIES.md`](DEPENDENCIES.md) — per-platform install requirements
+- [`docs/DOCKER.md`](docs/DOCKER.md) — containerized backend deployment
+- [`AGENTS.md`](AGENTS.md) — contributor and build command reference
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute
+
+---
+
+Built for [SIH Problem Statement 26117](https://www.sih.gov.in/) — Sovereign
+On-Premise Agentic AI Workbench using Open-Weight Multimodal LLMs for
+Confidential Industrial Work, Mangalore Refinery and Petrochemicals Limited
+(MRPL).
+
+INDRA is a fork of [goose](https://github.com/block/goose), rebuilt for
+air-gapped industrial deployment. Licensed under Apache 2.0.
